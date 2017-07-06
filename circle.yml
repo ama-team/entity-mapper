@@ -1,0 +1,17 @@
+version: 2
+jobs:
+  default:
+    docker:
+      - image: circleci/ruby:2.3.4
+    steps:
+      - checkout
+      - type: cache-restore
+        key: bundler-{{ checksum "Gemfile" }}
+      - run: bin/setup
+      - type: cache-save
+        key: bundler-{{ checksum "Gemfile" }}
+        paths:
+          - vendor/bundle
+      - type: store_artifacts
+        path: test/report/allure
+        destination: allure

@@ -1,0 +1,14 @@
+# Testing
+.rspec_status
+
+# IDE files
+/.idea
+
+# Dependencies
+/vendor
+/.bundle
+/Gemfile.lock
+
+# Test artifacts
+/test/metadata
+/test/report
