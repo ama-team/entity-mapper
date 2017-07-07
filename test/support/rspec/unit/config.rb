@@ -1,3 +1,3 @@
-require_relative '../../../../test/support/rspec/configurator'
+require_relative '../../../../test/support/rspec/configurer'
 
-AMA::Entity::Mapper::Test::RSpec::Configurator.configure(:unit)
+AMA::Entity::Mapper::Test::RSpec::Configurer.configure(:unit)

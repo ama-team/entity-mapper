@@ -6,16 +6,17 @@ require 'coveralls'
 
 module AMA
   module Entity
-    module Mapper
+    class Mapper
       module Test
         module RSpec
-          class Configurator
+          class Configurer
             class << self
               def configure(test_type)
                 Coveralls.wear!
                 ::RSpec.configure do |config|
                   # Enable flags like --only-failures and --next-failure
-                  config.example_status_persistence_file_path = '.rspec_status'
+                  path = 'test/metadata/rspec/status'
+                  config.example_status_persistence_file_path = path
 
                   config.expect_with :rspec do |c|
                     c.syntax = :expect

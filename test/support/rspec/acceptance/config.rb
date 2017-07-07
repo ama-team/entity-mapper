@@ -1,5 +1,5 @@
 # frozen_string_literal: true
 
-require_relative '../../../../test/support/rspec/configurator'
+require_relative '../../../../test/support/rspec/configurer'
 
-AMA::Entity::Mapper::Test::RSpec::Configurator.configure(:acceptance)
+AMA::Entity::Mapper::Test::RSpec::Configurer.configure(:acceptance)
