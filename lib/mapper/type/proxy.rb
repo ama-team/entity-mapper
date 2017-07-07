@@ -36,8 +36,8 @@ module AMA
             type.hash
           end
 
-          def eql?(o)
-            o.is_a?(self.class) && o.type == @type
+          def eql?(other)
+            other.is_a?(self.class) && other.type == @type
           end
 
           private
