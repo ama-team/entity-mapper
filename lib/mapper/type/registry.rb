@@ -5,7 +5,7 @@ require 'logger'
 module AMA
   module Entity
     class Mapper
-      module Type
+      class Type
         # Holds all registered types
         class Registry
           attr_accessor :types

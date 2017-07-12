@@ -55,13 +55,13 @@ describe klass do
     end
   end
 
-  let(:sideway) do
+  let(:sidecar) do
     Class.new
   end
 
   let(:registry) do
     klass.new.tap do |registry|
-      %i[top middle_module middle bottom_module bottom sideway].each do |type|
+      %i[top middle_module middle bottom_module bottom sidecar].each do |type|
         registry.register(type_klass.new(send(type)))
       end
     end
@@ -84,6 +84,16 @@ describe klass do
 
     it 'should return top type only for top class' do
       expect(registry.for(top).map(&:type)).to eq([top])
+    end
+  end
+
+  describe '#registered?' do
+    it 'should return true for registered class' do
+      expect(registry.registered?(top)).to eq(true)
+    end
+
+    it 'should return false for non-registered class' do
+      expect(registry.registered?(Class.new)).to eq(false)
     end
   end
 end

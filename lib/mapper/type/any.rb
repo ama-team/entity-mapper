@@ -3,15 +3,21 @@
 module AMA
   module Entity
     class Mapper
-      module Type
+      class Type
         # Used as a wildcard to pass anything through
-        class Any
+        class Any < Type
+          INSTANCE = new
+
           def hash
             self.class.hash
           end
 
-          def eql?(*)
-            true
+          def eql?(other)
+            other.is_a?(Type)
+          end
+
+          def to_s
+            'Any type placeholder'
           end
         end
       end
