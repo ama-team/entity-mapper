@@ -1,6 +1,6 @@
 # frozen_String_literal: true
 
-require 'logger'
+require_relative '../exception/compliance_error'
 
 module AMA
   module Entity
@@ -26,6 +26,22 @@ module AMA
 
           def for(klass)
             find_class_types(klass) | find_module_types(klass)
+          end
+
+          def find(klass)
+            candidates = self.for(klass)
+            candidates.empty? ? nil : candidates.first
+          end
+
+          def find!(klass)
+            candidate = find(klass)
+            return candidate if candidate
+            message = "Could not find any registered type for class #{klass}"
+            compliance_error(message)
+          end
+
+          def include?(klass)
+            !find(klass).nil?
           end
 
           private
@@ -56,6 +72,10 @@ module AMA
               carrier | ancestor_types.reject(&:nil?)
             end
             result.reverse
+          end
+
+          def compliance_error(message)
+            raise ::AMA::Entity::Mapper::Exception::ComplianceError, message
           end
         end
       end

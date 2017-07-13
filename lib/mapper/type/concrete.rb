@@ -48,6 +48,9 @@ module AMA
           # @!attribute validator Ruby block that validates result
           #   @return [Proc]
           attr_accessor :validator
+          # @!attribute factory
+          #   @return [Proc]
+          attr_accessor :factory
 
           def initialize(type)
             unless type.is_a?(Class) || type.is_a?(Module)

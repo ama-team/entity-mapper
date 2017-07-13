@@ -2,9 +2,11 @@
 
 require_relative '../../../../../lib/mapper/type/registry'
 require_relative '../../../../../lib/mapper/type/concrete'
+require_relative '../../../../../lib/mapper/exception/compliance_error'
 
 klass = ::AMA::Entity::Mapper::Type::Registry
 type_klass = ::AMA::Entity::Mapper::Type::Concrete
+error_klass = ::AMA::Entity::Mapper::Exception::ComplianceError
 
 describe klass do
   let(:top) do
@@ -84,6 +86,30 @@ describe klass do
 
     it 'should return top type only for top class' do
       expect(registry.for(top).map(&:type)).to eq([top])
+    end
+  end
+
+  describe '#find' do
+    it 'should return bottom class type for bottom class' do
+      result = registry.find(bottom)
+      expect(result).not_to be_nil
+      expect(result.type).to eq(bottom)
+    end
+
+    it 'should return nil for unregistered type' do
+      expect(registry.find(Class.new)).to be_nil
+    end
+  end
+
+  describe '#find!' do
+    it 'should return bottom class type for bottom class' do
+      result = registry.find!(bottom)
+      expect(result).not_to be_nil
+      expect(result.type).to eq(bottom)
+    end
+
+    it 'should throw on unregistered type' do
+      expect { registry.find!(Class.new) }.to raise_error(error_klass)
     end
   end
 

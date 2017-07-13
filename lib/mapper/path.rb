@@ -8,8 +8,8 @@ module AMA
       class Path
         attr_reader :stack
 
-        def initialize
-          @stack = []
+        def initialize(stack = [])
+          @stack = stack
         end
 
         %i[attribute index key].each do |category|
@@ -18,12 +18,28 @@ module AMA
           end
         end
 
+        def empty?
+          @stack.empty?
+        end
+
         def pop
-          @stack.pop
+          self.class.new(stack[0..-1])
         end
 
         def current
           @stack.last
+        end
+
+        def each
+          @stack.each do |item|
+            yield(item)
+          end
+        end
+
+        def reduce(carrier)
+          @stack.reduce(carrier) do |inner_carrier, item|
+            yield(inner_carrier, item)
+          end
         end
 
         def to_s
@@ -39,7 +55,7 @@ module AMA
 
         def push(type, id)
           payload = { type: type, id: id }
-          @stack.push(payload)
+          self.class.new(stack.clone.push(payload))
         end
       end
     end
