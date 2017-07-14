@@ -40,26 +40,24 @@ describe klass do
   end
 
   describe '#normalize' do
-    describe 'object:' do
-      it 'should normalize object as hash of it\'s instance variables' do
-        expect(normalizer.normalize(object, context)).to eq(object.to_hash)
-      end
+    it 'should normalize object as hash of it\'s instance variables' do
+      expect(normalizer.normalize(object, context)).to eq(object.to_hash)
+    end
 
-      it 'should use :normalize method' do
-        value = { x: 12, z: 13 }
-        doubler = double
-        allow(doubler).to receive(:normalize).and_return(value).once
-        expect(normalizer.normalize(doubler, context)).to eq(value)
-      end
+    it 'should use :normalize method' do
+      value = { x: 12, z: 13 }
+      doubler = double
+      allow(doubler).to receive(:normalize).and_return(value).once
+      expect(normalizer.normalize(doubler, context)).to eq(value)
+    end
 
-      it 'should wrap encountered exceptions' do
-        doubler = double
-        allow(doubler).to receive(:normalize).and_raise(RuntimeError)
-        expectation = expect do
-          normalizer.normalize(doubler, context)
-        end
-        expectation.to raise_error(exception_klass)
+    it 'should wrap encountered exceptions' do
+      doubler = double
+      allow(doubler).to receive(:normalize).and_raise(RuntimeError)
+      expectation = expect do
+        normalizer.normalize(doubler, context)
       end
+      expectation.to raise_error(exception_klass)
     end
   end
 end

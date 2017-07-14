@@ -5,68 +5,39 @@ require_relative '../../../../../../lib/mapper/type/registry'
 require_relative '../../../../../../lib/mapper/type/concrete'
 
 klass = ::AMA::Entity::Mapper::Engine::Normalizer::Entity
-registry_klass = ::AMA::Entity::Mapper::Type::Registry
-type_klass = ::AMA::Entity::Mapper::Type::Concrete
+registry_class = ::AMA::Entity::Mapper::Type::Registry
+type_class = ::AMA::Entity::Mapper::Type::Concrete
 
 describe klass do
-  let(:simple_entity_klass) do
-    Class.new do
-      def initialize
-        @value = 1
-      end
+  factory = lambda do |name|
+    let(name) do
+      Class.new do
+        attr_accessor :value
 
-      def self.to_s
-        'simple_entity_klass'
-      end
-    end
-  end
+        def initialize
+          @value = 1
+        end
 
-  let(:normalized_entity_klass) do
-    Class.new do
-      def initialize
-        @value = 1
-      end
-
-      def self.to_s
-        'normalized_entity_klass'
+        def self.to_s
+          name.to_s.tr('_', ' ')
+        end
       end
     end
   end
 
-  let(:fallback_normalized_entity_klass) do
-    Class.new do
-      attr_accessor :value
-
-      def initialize
-        @value = 1
-      end
-
-      def self.to_s
-        'fallback_normalized_entity_klass'
-      end
-    end
-  end
-
-  let(:sensitive_entity_klass) do
-    Class.new do
-      def initialize
-        @value = 1
-      end
-
-      def self.to_s
-        'sensitive_entity_klass'
-      end
-    end
+  types = %i[simple normalized fallback_normalized sensitive virtual]
+  types.each do |type|
+    factory.call(:"#{type}_entity_class")
   end
 
   let(:simple_entity_type) do
-    type = type_klass.new(simple_entity_klass)
+    type = type_class.new(simple_entity_class)
     type.attribute(:value, Integer)
     type
   end
 
   let(:normalized_entity_type) do
-    type = type_klass.new(normalized_entity_klass)
+    type = type_class.new(normalized_entity_class)
     type.attribute(:value, Integer)
     type.normalizer = lambda do |*|
       { value: 123 }
@@ -75,7 +46,7 @@ describe klass do
   end
 
   let(:fallback_normalized_entity_type) do
-    type = type_klass.new(fallback_normalized_entity_klass)
+    type = type_class.new(fallback_normalized_entity_class)
     type.attribute(:value, Integer)
     type.normalizer = lambda do |entity, *, &block|
       entity.value = 123
@@ -87,14 +58,20 @@ describe klass do
   end
 
   let(:sensitive_entity_type) do
-    type = type_klass.new(sensitive_entity_klass)
+    type = type_class.new(sensitive_entity_class)
     type.attribute(:value, Integer, sensitive: true)
     type
   end
 
+  let(:virtual_entity_type) do
+    type = type_class.new(virtual_entity_class)
+    type.attribute(:value, Integer, virtual: true)
+    type
+  end
+
   let(:registry) do
-    registry_klass.new.tap do |registry|
-      %i[simple normalized sensitive fallback_normalized].each do |type|
+    registry_class.new.tap do |registry|
+      types.each do |type|
         registry.register(send("#{type}_entity_type"))
       end
     end
@@ -107,22 +84,26 @@ describe klass do
   describe '#normalize' do
     it 'should normalize simple entity as attribute hash' do
       expectation = { value: 1 }
-      expect(normalizer.normalize(simple_entity_klass.new)).to eq(expectation)
+      expect(normalizer.normalize(simple_entity_class.new)).to eq(expectation)
     end
 
-    it 'should normalize sensitive entity as empty hash' do
-      expect(normalizer.normalize(sensitive_entity_klass.new)).to eq({})
+    it 'should not normalize sensitive attributes' do
+      expect(normalizer.normalize(sensitive_entity_class.new)).to eq({})
+    end
+
+    it 'should not normalize virtual attributes' do
+      expect(normalizer.normalize(virtual_entity_class.new)).to eq({})
     end
 
     it 'should use provided normalizer' do
       expectation = { value: 123 }
-      result = normalizer.normalize(normalized_entity_klass.new)
+      result = normalizer.normalize(normalized_entity_class.new)
       expect(result).to eq(expectation)
     end
 
     it 'should allow provided normalizer to fall back on default normalizer' do
       expectation = { value: 123, extra: 123 }
-      result = normalizer.normalize(fallback_normalized_entity_klass.new)
+      result = normalizer.normalize(fallback_normalized_entity_class.new)
       expect(result).to eq(expectation)
     end
   end

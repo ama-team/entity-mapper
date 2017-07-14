@@ -36,7 +36,7 @@ module AMA
             def normalize_entity(entity, *)
               type = @registry.find!(entity.class)
               type.attributes.values.each_with_object({}) do |attribute, values|
-                next values if attribute.sensitive
+                next values if attribute.sensitive || attribute.virtual
                 values[attribute.name] = normalize_attribute(entity, attribute)
                 values
               end
