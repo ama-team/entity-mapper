@@ -22,11 +22,9 @@ module AMA
             # @param [AMA::Entity::Mapper::Type::Concrete] target_type
             def denormalize(source, context, target_type)
               return source if source.is_a?(target_type.type)
-              custom_denormalizer = context.use_denormalize_method
-              custom_denormalizer &&= target_type.type.respond_to?(:denormalize)
-              if custom_denormalizer
-                return target_type.type.denormalize(source, context)
-              end
+              handler = context.denormalization_method
+              handler &&= target_type.type.respond_to?(handler) ? handler : nil
+              return target_type.type.send(handler, source, context) if handler
               unless source.is_a?(Hash)
                 message = "Can't denormalize object #{target_type} " \
                   "from anything but Hash, #{source.class} given"

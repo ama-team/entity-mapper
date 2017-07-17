@@ -34,9 +34,15 @@ describe klass do
   end
 
   let(:context) do
-    context_klass.new.tap do |context|
-      context.use_normalize_method = true
-    end
+    context_klass.new
+  end
+
+  let(:forbidding_context) do
+    options = {
+      normalization_method: nil,
+      denormalization_method: nil
+    }
+    context_klass.new(**options)
   end
 
   describe '#normalize' do
@@ -49,6 +55,15 @@ describe klass do
       doubler = double
       allow(doubler).to receive(:normalize).and_return(value).once
       expect(normalizer.normalize(doubler, context)).to eq(value)
+    end
+
+    it 'should not use normalization method if forbidden to' do
+      subject = object
+      def subject.normalize
+        'Oh noes'
+      end
+      context = self.forbidding_context
+      expect(normalizer.normalize(subject, context)).to eq(subject.to_hash)
     end
 
     it 'should wrap encountered exceptions' do

@@ -1,6 +1,7 @@
 # frozen-string_literal: true
 
 require_relative '../../exception/mapping_error'
+require_relative '../../mixin/errors'
 
 module AMA
   module Entity
@@ -9,6 +10,8 @@ module AMA
         class Normalizer
           # Special normalizer for registered entities
           class Entity
+            include ::AMA::Entity::Mapper::Mixin::Errors
+
             def initialize(registry)
               @registry = registry
             end
@@ -45,11 +48,6 @@ module AMA
             def normalize_attribute(entity, attribute)
               # TODO: add attribute normalizer support
               entity.instance_variable_get("@#{attribute.name}")
-            end
-
-            # @param [String] message
-            def mapping_error(message)
-              raise ::AMA::Entity::Mapper::Exception::MappingError, message
             end
           end
         end

@@ -16,7 +16,7 @@ module AMA
               TrueClass => [:to_bool],
               FalseClass => [:to_bool],
               Array => [:to_a],
-              Hash => [:to_h]
+              Hash => %i[to_h to_hash]
             }.freeze
 
             # @param [AMA::Entity::Mapper::Type::Concrete] type

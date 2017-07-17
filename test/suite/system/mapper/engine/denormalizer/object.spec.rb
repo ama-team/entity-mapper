@@ -6,6 +6,7 @@ require_relative '../../../../../../lib/mapper/engine/context'
 
 klass = ::AMA::Entity::Mapper::Engine::Denormalizer::Object
 error_class = ::AMA::Entity::Mapper::Exception::MappingError
+context_class = ::AMA::Entity::Mapper::Engine::Context
 
 describe klass do
   let(:denormalizer) do
@@ -13,7 +14,11 @@ describe klass do
   end
 
   let(:context) do
-    ::AMA::Entity::Mapper::Engine::Context.new
+    context_class.new
+  end
+
+  let(:forbidding_context) do
+    context_class::FORBIDDING
   end
 
   let(:simple_class) do
@@ -81,9 +86,7 @@ describe klass do
       expectation.to raise_error(error_class)
     end
 
-    it 'should not use .denormalize class method if not allowed' do
-      context = self.context
-      context.use_denormalize_method = true
+    it 'should use denormalization class method if allowed to' do
       type = double(type: custom_denormalizer_class)
       source = 12
       result = denormalizer.denormalize(source, context, type)
@@ -91,12 +94,10 @@ describe klass do
       expect(result.value).to eq(source)
     end
 
-    it 'should use .denormalize class method if allowed' do
-      context = self.context
-      context.use_denormalize_method = false
+    it 'should not use denormalization class method if not allowed to' do
       type = double(type: custom_denormalizer_class)
       source = { value: 12 }
-      result = denormalizer.denormalize(source, context, type)
+      result = denormalizer.denormalize(source, forbidding_context, type)
       expect(result).to be_a(type.type)
       expect(result.value).to eq(source[:value])
     end

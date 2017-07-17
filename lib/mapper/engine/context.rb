@@ -9,21 +9,40 @@ module AMA
         # Normalization/denormalization context. Holds current path relatively
         # to processed item and some options.
         class Context
+          DEFAULTS = {
+            path: Path.new,
+            normalization_method: :normalize,
+            denormalization_method: :denormalize
+          }.freeze
+
           # @!attribute path
           #   @return [Path]
           attr_reader :path
-          attr_accessor :use_normalize_method
-          attr_accessor :use_denormalize_method
+          attr_reader :normalization_method
+          attr_reader :denormalization_method
 
-          def initialize(path = nil)
-            @path = path || Path.new
-            @use_normalize_method = true
-            @use_denormalize_method = true
+          def initialize(**options)
+            DEFAULTS.each do |key, default|
+              instance_variable_set("@#{key}", options.fetch(key, default))
+            end
           end
 
           def advance(type, key)
-            self.class.new(path.send(type, key))
+            data = to_h.merge({ path: path.send(type,key )})
+            self.class.new(**data)
           end
+
+          def to_h
+            intermediate = DEFAULTS.keys.map do |key|
+              [key, instance_variable_get("@#{key}")]
+            end
+            Hash[intermediate]
+          end
+
+          FORBIDDING = new(
+            normalization_method: nil,
+            denormalization_method: nil
+          )
         end
       end
     end

@@ -43,11 +43,11 @@ module AMA
                 ::Coveralls.wear! do
                   add_filter 'test'
                   coverage_dir target_dir
-                  formatter SimpleCov::Formatter::MultiFormatter[
+                  formatter SimpleCov::Formatter::MultiFormatter.new([
                     SimpleCov::Formatter::SimpleFormatter,
                     SimpleCov::Formatter::HTMLFormatter,
                     Coveralls::SimpleCov::Formatter
-                  ]
+                  ])
                 end
               end
 

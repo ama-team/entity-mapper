@@ -23,7 +23,7 @@ module AMA
         end
 
         def pop
-          self.class.new(stack[0..-1])
+          self.class.new(@stack[0..-2])
         end
 
         def current
@@ -40,6 +40,10 @@ module AMA
           @stack.reduce(carrier) do |inner_carrier, item|
             yield(inner_carrier, item)
           end
+        end
+
+        def to_a
+          @stack.clone
         end
 
         def to_s

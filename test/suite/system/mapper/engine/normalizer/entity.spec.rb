@@ -3,10 +3,12 @@
 require_relative '../../../../../../lib/mapper/engine/normalizer/entity'
 require_relative '../../../../../../lib/mapper/type/registry'
 require_relative '../../../../../../lib/mapper/type/concrete'
+require_relative '../../../../../../lib/mapper/exception/mapping_error'
 
 klass = ::AMA::Entity::Mapper::Engine::Normalizer::Entity
 registry_class = ::AMA::Entity::Mapper::Type::Registry
 type_class = ::AMA::Entity::Mapper::Type::Concrete
+error_class = ::AMA::Entity::Mapper::Exception::MappingError
 
 describe klass do
   factory = lambda do |name|
@@ -25,7 +27,7 @@ describe klass do
     end
   end
 
-  types = %i[simple normalized fallback_normalized sensitive virtual]
+  types = %i[simple normalized fallback_normalized sensitive virtual exploding]
   types.each do |type|
     factory.call(:"#{type}_entity_class")
   end
@@ -69,6 +71,15 @@ describe klass do
     type
   end
 
+  let(:exploding_entity_type) do
+    type = type_class.new(exploding_entity_class)
+    type.attribute(:value, Integer, virtual: true)
+    type.normalizer = lambda do |*|
+      raise
+    end
+    type
+  end
+
   let(:registry) do
     registry_class.new.tap do |registry|
       types.each do |type|
@@ -105,6 +116,13 @@ describe klass do
       expectation = { value: 123, extra: 123 }
       result = normalizer.normalize(fallback_normalized_entity_class.new)
       expect(result).to eq(expectation)
+    end
+
+    it 'should wrap encountered errors' do
+      expectation = expect do
+        normalizer.normalize(exploding_entity_class.new)
+      end
+      expectation.to raise_error(error_class)
     end
   end
 end

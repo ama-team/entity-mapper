@@ -16,9 +16,9 @@ module AMA
 
             def normalize(value, context = nil, *)
               context ||= ::AMA::Entity::Mapper::Engine::Context.new
-              if value.respond_to?(:normalize) && context.use_normalize_method
-                return value.normalize
-              end
+              handler = context.normalization_method
+              handler &&= value.respond_to?(handler) ? handler : nil
+              return value.send(handler) if handler
               intermediate = value.instance_variables.map do |variable|
                 [variable[1..-1].to_sym, value.instance_variable_get(variable)]
               end
