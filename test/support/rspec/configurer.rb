@@ -12,7 +12,7 @@ module AMA
           class Configurer
             class << self
               def configure(test_type)
-                Coveralls.wear!
+                configure_coverage(test_type)
                 ::RSpec.configure do |config|
                   # Enable flags like --only-failures and --next-failure
                   path = 'test/metadata/rspec/status'
@@ -30,10 +30,31 @@ module AMA
 
               private
 
+              def root
+                (0..2).reduce(__dir__) { |dir| ::File.dirname(dir) }
+              end
+
+              def metadata_path(*names)
+                ::File.join(root, 'test', 'metadata', *names.map(&:to_s))
+              end
+
+              def configure_coverage(test_type)
+                target_dir = metadata_path('coverage', test_type)
+                ::Coveralls.wear! do
+                  add_filter 'test'
+                  coverage_dir target_dir
+                  formatter SimpleCov::Formatter::MultiFormatter[
+                    SimpleCov::Formatter::SimpleFormatter,
+                    SimpleCov::Formatter::HTMLFormatter,
+                    Coveralls::SimpleCov::Formatter
+                  ]
+                end
+              end
+
               def configure_allure(rspec_config, test_type)
                 rspec_config.include ::AllureRSpec::Adaptor
                 ::AllureRSpec.configure do |allure|
-                  allure.output_dir = "test/metadata/allure/#{test_type}"
+                  allure.output_dir = metadata_path('allure', test_type)
                   allure.logging_level = Logger::INFO
                 end
               end
