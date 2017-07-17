@@ -62,8 +62,8 @@ describe klass do
       def subject.normalize
         'Oh noes'
       end
-      context = self.forbidding_context
-      expect(normalizer.normalize(subject, context)).to eq(subject.to_hash)
+      result = normalizer.normalize(subject, forbidding_context)
+      expect(result).to eq(subject.to_hash)
     end
 
     it 'should wrap encountered exceptions' do

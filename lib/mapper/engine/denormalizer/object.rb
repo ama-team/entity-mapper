@@ -22,8 +22,7 @@ module AMA
             # @param [AMA::Entity::Mapper::Type::Concrete] target_type
             def denormalize(source, context, target_type)
               return source if source.is_a?(target_type.type)
-              handler = context.denormalization_method
-              handler &&= target_type.type.respond_to?(handler) ? handler : nil
+              handler = compute_handler(target_type, context)
               return target_type.type.send(handler, source, context) if handler
               unless source.is_a?(Hash)
                 message = "Can't denormalize object #{target_type} " \
@@ -36,6 +35,11 @@ module AMA
             end
 
             private
+
+            def compute_handler(target_type, context)
+              handler = context.denormalization_method
+              handler ? target_type.type.respond_to?(handler) : nil
+            end
 
             def instantiate(type)
               type.type.new

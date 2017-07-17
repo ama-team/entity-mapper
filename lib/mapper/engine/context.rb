@@ -28,7 +28,7 @@ module AMA
           end
 
           def advance(type, key)
-            data = to_h.merge({ path: path.send(type,key )})
+            data = to_h.merge(path: path.send(type, key))
             self.class.new(**data)
           end
 
