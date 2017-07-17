@@ -32,7 +32,7 @@ module AMA
 
             def compute_handler(value, context)
               handler = context.normalization_method
-              handler ? value.respond_to?(handler) : nil
+              handler && value.respond_to?(handler) ? handler : nil
             end
 
             def mapping_error(message)

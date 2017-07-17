@@ -38,7 +38,7 @@ module AMA
 
             def compute_handler(target_type, context)
               handler = context.denormalization_method
-              handler ? target_type.type.respond_to?(handler) : nil
+              handler && target_type.type.respond_to?(handler) ? handler : nil
             end
 
             def instantiate(type)
