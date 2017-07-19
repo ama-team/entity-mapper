@@ -1,6 +1,6 @@
 # frozen_String_literal: true
 
-require_relative '../exception/compliance_error'
+require_relative '../mixin/errors'
 
 module AMA
   module Entity
@@ -8,6 +8,8 @@ module AMA
       class Type
         # Holds all registered types
         class Registry
+          include Mixin::Errors
+
           attr_accessor :types
 
           def initialize
@@ -72,10 +74,6 @@ module AMA
               carrier | ancestor_types.reject(&:nil?)
             end
             result.reverse
-          end
-
-          def compliance_error(message)
-            raise ::AMA::Entity::Mapper::Exception::ComplianceError, message
           end
         end
       end

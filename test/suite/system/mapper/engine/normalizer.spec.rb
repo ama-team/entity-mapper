@@ -26,7 +26,7 @@ describe klass do
 
   let(:entity_type) do
     type = type_class.new(entity_class)
-    type.attribute(:value, any_type_class)
+    type.attribute!(:value, any_type_class)
     type
   end
 
@@ -57,18 +57,6 @@ describe klass do
       def normalize
         raise
       end
-    end
-  end
-
-  describe '#normalize_recursively' do
-    it 'should normalize nested entity as planned' do
-      expectation = {
-        value: {
-          value: [1]
-        }
-      }
-      result = normalizer.normalize_recursively(nested_entity)
-      expect(result).to eq(expectation)
     end
   end
 end

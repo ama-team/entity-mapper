@@ -61,6 +61,10 @@ describe klass do
     Class.new
   end
 
+  let(:unregistered_descendant) do
+    Class.new(bottom)
+  end
+
   let(:registry) do
     klass.new.tap do |registry|
       %i[top middle_module middle bottom_module bottom sidecar].each do |type|
@@ -120,6 +124,20 @@ describe klass do
 
     it 'should return false for non-registered class' do
       expect(registry.registered?(Class.new)).to eq(false)
+    end
+  end
+
+  describe '#include?' do
+    it 'should return true for registered class' do
+      expect(registry.include?(bottom)).to be(true)
+    end
+
+    it 'should return true for class having registered ancestor' do
+      expect(registry.include?(unregistered_descendant)).to be(true)
+    end
+
+    it 'should return false for class that doesn\'t have any registered ancestors' do
+      expect(registry.include?(Class.new)).to be(false)
     end
   end
 end

@@ -33,8 +33,8 @@ module AMA
             implementation.denormalize(source, context, target_type)
           rescue StandardError => e
             message = "Error while denormalizing #{target_type} " \
-              "out of #{source.class} (path: #{context.path})"
-            mapping_error(message, e)
+              "out of #{source.class}"
+            mapping_error(message, parent: e, context: context)
           end
         end
       end

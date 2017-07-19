@@ -42,7 +42,7 @@ module AMA
               unless structure.is_a?(Hash)
                 message = "Can't denormalize #{target_type} from " \
                   "anything but hash (#{structure.class} supplied)"
-                mapping_error(message, nil)
+                mapping_error(message, context: context)
               end
               entity = instantiate(target_type, context, structure)
               attributes = target_type.attributes.values

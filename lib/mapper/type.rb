@@ -2,75 +2,24 @@
 
 # rubocop:disable Lint/UnusedMethodArgument
 
-require_relative 'exception/compliance_error'
+require_relative 'mixin/errors'
+require_relative 'context'
 
 module AMA
   module Entity
     class Mapper
       # Base abstract class for all other types
       class Type
+        include Mixin::Errors
+
         # @return [Hash{Symbol, AMA::Entity::Mapper::Type::Attribute}]
         def attributes
-          compliance_error("Type #{self} doesn't support attributes")
+          abstract_method
         end
 
         # @return [Hash{Symbol, AMA::Entity::Mapper::Type}]
         def parameters
-          compliance_error("Type #{self} doesn't support parameters")
-        end
-
-        def supports_parameters?
-          false
-        end
-
-        def supports_attributes?
-          false
-        end
-
-        # @param [AMA::Entity::Mapper::Type] parameter
-        # @param [AMA::Entity::Mapper::Type] substitution
-        def resolve_parameter(parameter, substitution)
-          if supports_parameters?
-            parameters.each do |id, bound_parameter|
-              parameters[id] = substitution if bound_parameter == parameter
-            end
-          end
-          return unless supports_attributes?
-          attributes.values.each do |attribute|
-            attribute.types = attribute.types.map do |type|
-              next substitution if type == parameter
-              type.resolve_parameter(parameter, substitution)
-              type
-            end
-          end
-        end
-
-        def resolve(parameters)
-          parameters.each do |parameter, substitution|
-            resolve_parameter(parameter, substitution)
-          end
-        end
-
-        # @return [TrueClass, FalseClass]
-        def resolved?
-          if supports_parameters? && !parameters.values.all?(&:resolved?)
-            return false
-          end
-          return true unless supports_attributes?
-          attributes.values.flat_map(&:types).all?(&:resolved?)
-        end
-
-        # @param [AMA::Entity::Mapper::Type] parameter
-        # @return [TrueClass, FalseClass]
-        def parameter_of?(parameter)
-          parameters.values.include?(parameter)
-        end
-
-        # @param [AMA::Entity::Mapper::Type] parameter
-        def parameter_of!(parameter)
-          return if parameter_of?(parameter)
-          message = "Type #{self} doesn't have parameter with type #{parameter}"
-          compliance_error(message)
+          abstract_method
         end
 
         # @param [Symbol] id
@@ -79,15 +28,73 @@ module AMA
           parameters.key?(id)
         end
 
+        # Creates parameter if it doesn't yet exist and returns it
+        #
         # @param [Symbol] id
         def parameter!(id)
-          return if parameter?(id)
-          compliance_error("Type #{self} doesn't have parameter #{id}")
+          abstract_method
         end
 
-        def absent_parameter!(id)
-          return unless parameter?(id)
-          compliance_error("Type #{self} has defined parameter #{id}")
+        # @param [AMA::Entity::Mapper::Type] parameter
+        # @param [AMA::Entity::Mapper::Type] substitution
+        # @return [AMA::Entity::Mapper::Type]
+        def resolve_parameter(parameter, substitution)
+          abstract_method
+        end
+
+        # rubocop:enable Metrics/LineLength
+
+        # @param [Hash<AMA::Entity::Mapper::Type, AMA::Entity::Mapper::Type>] parameters
+        # @return [AMA::Entity::Mapper::Type]
+        def resolve(parameters)
+          parameters.reduce(self) do |carrier, tuple|
+            carrier.resolve_parameter(*tuple)
+          end
+        end
+
+        # @return [TrueClass, FalseClass]
+        def resolved?
+          [parameters, attributes].flat_map(&:values).all?(&:resolved?)
+        end
+
+        def resolved!(context = nil)
+          context ||= Context.new
+          [parameters, attributes].flat_map(&:values).each do |item|
+            item.resolved!(context)
+          end
+        end
+
+        # @param [Object] object
+        def instance?(object)
+          abstract_method
+        end
+
+        # @param [Object] object
+        # @param [AMA::Entity::Mapper::Context] context
+        def instance!(object, context = nil)
+          return if instance?(object) || object.nil?
+          message = "Expected to receive instance of #{self}, got " \
+            "#{object.class}"
+          mapping_error(message, context: context)
+        end
+
+        def satisfied_by?(object)
+          abstract_method
+        end
+
+        # rubocop:disable Metrics/LineLength
+
+        # Dissects object into pairs (triplets) of attribute and it's value
+        # (and, optionally, path segment), then passes them one by one into
+        # supplied block and assembles new type instance.
+        #
+        # @param [Object] object
+        # @yieldparam attribute [AMA::Entity::Mapper::Type::Attribute]
+        # @yieldparam value [Object]
+        # @yieldparam segment [AMA::Entity::Mapper::Path::Segment] optional
+        # @yieldreturn [Object] processed value
+        def map(object)
+          abstract_method
         end
 
         def hash
@@ -106,17 +113,7 @@ module AMA
           abstract_method
         end
 
-        def validate!
-          # noop
-        end
-
         protected
-
-        def compliance_error(message)
-          raise ::AMA::Entity::Mapper::Exception::ComplianceError, message
-        end
-
-        private
 
         def abstract_method
           message = "Abstract method #{__callee__} hasn't been implemented " \

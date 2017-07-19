@@ -3,10 +3,12 @@
 require_relative '../../../../../../lib/mapper/engine/denormalizer/object'
 require_relative '../../../../../../lib/mapper/exception/mapping_error'
 require_relative '../../../../../../lib/mapper/engine/context'
+require_relative '../../../../../../lib/mapper/type/concrete'
 
 klass = ::AMA::Entity::Mapper::Engine::Denormalizer::Object
-error_class = ::AMA::Entity::Mapper::Exception::MappingError
+mapping_error_class = ::AMA::Entity::Mapper::Exception::MappingError
 context_class = ::AMA::Entity::Mapper::Engine::Context
+type_class = ::AMA::Entity::Mapper::Type::Concrete
 
 describe klass do
   let(:denormalizer) do
@@ -59,7 +61,7 @@ describe klass do
 
   describe '#denormalize' do
     it 'should instantiate simple class from hash' do
-      type = double(type: simple_class)
+      type = type_class.new(simple_class)
       source = { alpha: 1, beta: 2, gamma: 3 }
       result = denormalizer.denormalize(source, context, type)
       expect(result).to be_a(type.type)
@@ -69,7 +71,7 @@ describe klass do
     end
 
     it 'should instantiate simple class without setters from hash' do
-      type = double(type: reader_class)
+      type = type_class.new(reader_class)
       source = { alpha: 1, beta: 2, gamma: 3 }
       result = denormalizer.denormalize(source, context, type)
       expect(result).to be_a(type.type)
@@ -79,15 +81,15 @@ describe klass do
     end
 
     it 'should raise mapping exception if class #initialize method is not parameterless' do
-      type = double(type: parameterized_initialize_class)
+      type = type_class.new(parameterized_initialize_class)
       expectation = expect do
         denormalizer.denormalize({}, context, type)
       end
-      expectation.to raise_error(error_class)
+      expectation.to raise_error(mapping_error_class)
     end
 
     it 'should use denormalization class method if allowed to' do
-      type = double(type: custom_denormalizer_class)
+      type = type_class.new(custom_denormalizer_class)
       source = 12
       result = denormalizer.denormalize(source, context, type)
       expect(result).to be_a(type.type)
@@ -95,7 +97,7 @@ describe klass do
     end
 
     it 'should not use denormalization class method if not allowed to' do
-      type = double(type: custom_denormalizer_class)
+      type = type_class.new(custom_denormalizer_class)
       source = { value: 12 }
       result = denormalizer.denormalize(source, forbidding_context, type)
       expect(result).to be_a(type.type)
@@ -103,11 +105,11 @@ describe klass do
     end
 
     it 'should raise error if source is not a hash' do
-      type = double(type: simple_class)
+      type = type_class.new(simple_class)
       expectation = expect do
         denormalizer.denormalize(nil, context, type)
       end
-      expectation.to raise_error(error_class)
+      expectation.to raise_error(mapping_error_class)
     end
   end
 end

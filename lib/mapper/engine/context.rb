@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative '../path'
+require_relative '../context'
 
 module AMA
   module Entity
@@ -8,7 +9,8 @@ module AMA
       class Engine
         # Normalization/denormalization context. Holds current path relatively
         # to processed item and some options.
-        class Context
+        # TODO: rename class for clarity
+        class Context < Mapper::Context
           DEFAULTS = {
             path: Path.new,
             normalization_method: :normalize,
@@ -27,8 +29,12 @@ module AMA
             end
           end
 
-          def advance(type, key)
-            data = to_h.merge(path: path.send(type, key))
+          # Creates new context, resembling traversal to specified segment
+          #
+          # @param [AMA::Entity::Mapper::Path::Segment, String, Symbol] segment
+          # @return [AMA::Entity::Mapper::Context]
+          def advance(segment)
+            data = to_h.merge(path: path.push(segment))
             self.class.new(**data)
           end
 

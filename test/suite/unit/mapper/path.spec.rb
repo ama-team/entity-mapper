@@ -6,7 +6,7 @@ klass = ::AMA::Entity::Mapper::Path
 
 describe klass do
   let(:default) do
-    klass.new.key('element').index(0).attribute('property')
+    klass.new.index('0').attribute('attribute').property('property')
   end
 
   let(:empty) do
@@ -54,7 +54,24 @@ describe klass do
 
   describe '#to_s' do
     it 'should be represented in standard pattern' do
-      expect(default.to_s).to eq('$.element[0]#property')
+      expect(default.to_s).to eq('$[0]#attribute.property')
+    end
+  end
+
+  describe '#merge' do
+    it 'should place merged segments in the end' do
+      expectation = default.to_a.concat(default.to_a)
+      expect(default.merge(default).to_a).to eq(expectation)
+    end
+  end
+
+  describe '#push' do
+    it 'should use attribute type by default' do
+      path = empty.push(:default)
+      compared_path = empty.attribute(:default)
+      expect(path.size).to eq(1)
+      expect(compared_path.size).to eq(1)
+      expect(path.current).to eq(compared_path.current)
     end
   end
 end

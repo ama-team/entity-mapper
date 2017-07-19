@@ -29,7 +29,7 @@ module AMA
                   "from anything but Hash, #{source.class} given"
                 mapping_error(message, nil)
               end
-              entity = instantiate(target_type)
+              entity = target_type.instantiate
               populate_object(entity, source)
               entity
             end
@@ -39,18 +39,6 @@ module AMA
             def compute_handler(target_type, context)
               handler = context.denormalization_method
               handler && target_type.type.respond_to?(handler) ? handler : nil
-            end
-
-            def instantiate(type)
-              type.type.new
-            rescue ArgumentError => e
-              message = "Failed to instantiate object of type #{type}: " \
-                "#{e.message}. Have you passed class with " \
-                'mandatory parameters in #initialize method?'
-              mapping_error(message, nil)
-            rescue StandardError => e
-              message = "Failed to instantiate object of type #{type}"
-              mapping_error(message, e)
             end
           end
         end

@@ -1,17 +1,28 @@
 # frozen_string_literal: true
 
+require_relative 'reference'
+require_relative 'any'
 require_relative '../type'
+require_relative '../mixin/errors'
 
 module AMA
   module Entity
     class Mapper
       class Type
-        # A reference for parameter defined in particular type
-        # Acts as a proxy, delegating method calls to whatever lies as specified
-        # parameter in owner
+        # This class represents variable type - an unknown-until-runtime type
+        # that belongs to particular other type. For example,
+        # Hash<Symbol, Integer> may be described as ConcreteType(Hash) with
+        # variables _key: Symbol and _value: Integer
         class Parameter < Type
+          include Mixin::Errors
+
+          # @!attribute type
+          #   @return [AMA::Entity::Mapper::Type]
           attr_reader :owner
+          # @!attribute id
+          #   @return [Symbol]
           attr_reader :id
+          attr_reader :reference
 
           # @param [AMA::Entity::Mapper::Type] owner
           # @param [Symbol] id
@@ -20,9 +31,42 @@ module AMA
             @id = id
           end
 
+          def attributes
+            {}
+          end
+
+          def parameters
+            {}
+          end
+
+          def map(object)
+            compliance_error("Called #map() method on #{self}", nil)
+          end
+
+          %i[instance?, satisfied_by?].each do |method|
+            define_method method do |_|
+              false
+            end
+          end
+
+          def resolve_parameter(*)
+            self
+          end
+
+          def resolved?
+            false
+          end
+
+          def resolved!(context = nil)
+            compliance_error("Type #{self} is not resolved", context: context)
+          end
+
+          def reference
+            Reference.new(@owner, @id)
+          end
+
           def to_s
-            "Parameter (reference) type for variable type :#{id} " \
-              "(declared in #{owner})"
+            "Variable Type :#{id} (declared in #{owner})"
           end
 
           def hash
@@ -31,14 +75,7 @@ module AMA
 
           def eql?(other)
             return false unless other.is_a?(self.class)
-            @owner == other.owner && @id == other.id
-          end
-
-          Type.instance_methods.each do |method|
-            next if method_defined?(method)
-            define_method(method) do |*args|
-              @owner.parameters[@id].send(method, *args)
-            end
+            id == other.id && owner == other.owner
           end
         end
       end

@@ -26,8 +26,8 @@ module AMA
               end
             rescue StandardError => e
               message = 'Error while normalizing entity ' \
-                "of type #{entity.class}: #{e.message}"
-              mapping_error(message)
+                "of type #{entity.class}"
+              mapping_error(message, parent: e, context: context)
             end
 
             def supports(value)

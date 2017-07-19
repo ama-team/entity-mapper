@@ -15,14 +15,20 @@ module AMA
           # @!method mapping_error(message, parent_error = nil)
           #   @param [String] message
           #   @param [StandardError] parent_error
+
           # @!method compliance_error(message, parent_error = nil)
           #   @param [String] message
           #   @param [StandardError] parent_error
           error_types.each do |type|
             method = "#{type.to_s.downcase}_error"
             error_class = error_namespace.const_get("#{type}Error")
-            define_method method do |message, parent_error = nil|
+            define_method method do |message, parent_error = nil, **options|
+              # TODO: deprecate parent_error parameter
+              parent_error = options[:parent] unless parent_error
               message += ": #{parent_error.message}" unless parent_error.nil?
+              if options[:context]
+                message += " (path: #{options[:context].path})"
+              end
               raise error_class, message
             end
           end

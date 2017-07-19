@@ -16,7 +16,7 @@ module AMA
 
             # @param [AMA::Entity::Mapper::Type::Concrete] type
             def supports(type)
-              type.included_modules.include?(::Enumerable)
+              type.type.included_modules.include?(::Enumerable)
             end
 
             # @param [Object] source

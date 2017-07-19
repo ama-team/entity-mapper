@@ -34,13 +34,13 @@ describe klass do
 
   let(:simple_entity_type) do
     type = type_class.new(simple_entity_class)
-    type.attribute(:value, Integer)
+    type.attribute!(:value, Integer)
     type
   end
 
   let(:normalized_entity_type) do
     type = type_class.new(normalized_entity_class)
-    type.attribute(:value, Integer)
+    type.attribute!(:value, Integer)
     type.normalizer = lambda do |*|
       { value: 123 }
     end
@@ -49,7 +49,7 @@ describe klass do
 
   let(:fallback_normalized_entity_type) do
     type = type_class.new(fallback_normalized_entity_class)
-    type.attribute(:value, Integer)
+    type.attribute!(:value, Integer)
     type.normalizer = lambda do |entity, *, &block|
       entity.value = 123
       result = block.call(entity)
@@ -61,19 +61,19 @@ describe klass do
 
   let(:sensitive_entity_type) do
     type = type_class.new(sensitive_entity_class)
-    type.attribute(:value, Integer, sensitive: true)
+    type.attribute!(:value, Integer, sensitive: true)
     type
   end
 
   let(:virtual_entity_type) do
     type = type_class.new(virtual_entity_class)
-    type.attribute(:value, Integer, virtual: true)
+    type.attribute!(:value, Integer, virtual: true)
     type
   end
 
   let(:exploding_entity_type) do
     type = type_class.new(exploding_entity_class)
-    type.attribute(:value, Integer, virtual: true)
+    type.attribute!(:value, Integer, virtual: true)
     type.normalizer = lambda do |*|
       raise
     end

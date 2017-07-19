@@ -1,65 +1,91 @@
 # frozen_string_literal: true
 
+require_relative 'path/segment'
+
 module AMA
   module Entity
     class Mapper
       # Wrapper for simple array. Helps to understand where exactly processing
       # is taking place.
       class Path
-        attr_reader :stack
+        attr_reader :segments
 
         def initialize(stack = [])
-          @stack = stack
-        end
-
-        %i[attribute index key].each do |category|
-          define_method category do |id|
-            push(category, id)
-          end
+          @segments = stack
         end
 
         def empty?
-          @stack.empty?
+          @segments.empty?
         end
 
+        # @param [String, Symbol, Integer] name
+        # @return [AMA::Entity::Mapper::Path]
+        def index(name)
+          push(Segment.index(name))
+        end
+
+        # @param [String, Symbol] name
+        # @return [AMA::Entity::Mapper::Path]
+        def attribute(name)
+          push(Segment.attribute(name))
+        end
+
+        # @param [String, Symbol] name
+        # @return [AMA::Entity::Mapper::Path]
+        def property(name)
+          push(Segment.property(name))
+        end
+
+        # @param [Array<AMA::Entity::Mapper::Path::Segment>] segments
+        # @return [AMA::Entity::Mapper::Path]
+        def push(*segments)
+          segments = segments.map do |segment|
+            next segment if segment.is_a?(Segment)
+            Segment.attribute(segment)
+          end
+          self.class.new(@segments + segments)
+        end
+
+        # @return [AMA::Entity::Mapper::Path]
         def pop
-          self.class.new(@stack[0..-2])
+          self.class.new(@segments[0..-2])
         end
 
+        # @return [AMA::Entity::Mapper::Path::Segment]
         def current
-          @stack.last
+          @segments.last
         end
 
         def each
-          @stack.each do |item|
+          @segments.each do |item|
             yield(item)
           end
         end
 
         def reduce(carrier)
-          @stack.reduce(carrier) do |inner_carrier, item|
+          @segments.reduce(carrier) do |inner_carrier, item|
             yield(inner_carrier, item)
           end
         end
 
+        # @param [AMA::Entity::Mapper::Path] path
+        # @return [AMA::Entity::Mapper::Path]
+        def merge(path)
+          push(*path.segments)
+        end
+
+        def size
+          @segments.size
+        end
+
+        # @return [Array<AMA::Entity::Mapper::Path::Segment>]
         def to_a
-          @stack.clone
+          @segments.clone
         end
 
+        # @return [String]
         def to_s
-          parts = stack.map do |item|
-            next "##{item[:id]}" if item[:type] == :attribute
-            next "[#{item[:id]}]" if item[:type] == :index
-            ".#{item[:id]}"
-          end
-          "$#{parts.join}"
-        end
-
-        private
-
-        def push(type, id)
-          payload = { type: type, id: id }
-          self.class.new(stack.clone.push(payload))
+          "$#{@segments.join}"
         end
       end
     end

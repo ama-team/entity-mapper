@@ -14,7 +14,8 @@ module AMA
               TrueClass,
               FalseClass,
               Array,
-              Hash
+              Hash,
+              NilClass
             ].freeze
 
             def supports(value)

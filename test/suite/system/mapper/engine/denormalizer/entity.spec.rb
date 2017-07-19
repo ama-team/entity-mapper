@@ -35,10 +35,10 @@ describe klass do
     let(:"#{name}_entity_type") do
       described_class = send(:"#{name}_entity_class")
       type_class.new(described_class).tap do |type|
-        type.attribute(:value, Integer)
-        type.attribute(:hidden, Integer)
-        type.attribute(:sensitive, Integer, sensitive: true)
-        type.attribute(:virtual, Integer, virtual: true)
+        type.attribute!(:value, Integer)
+        type.attribute!(:hidden, Integer)
+        type.attribute!(:sensitive, Integer, sensitive: true)
+        type.attribute!(:virtual, Integer, virtual: true)
         block.call(type) if block
       end
     end

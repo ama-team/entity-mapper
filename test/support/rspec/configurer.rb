@@ -39,10 +39,11 @@ module AMA
               end
 
               def configure_coverage(test_type)
-                target_dir = metadata_path('coverage', test_type)
-                ::Coveralls.wear! do
+                target_dir = metadata_path('coverage')
+                ::Coveralls.wear_merged! do
                   add_filter 'test'
                   coverage_dir target_dir
+                  command_name "rspec:#{test_type}"
                   self.formatters = [
                     ::SimpleCov::Formatter::SimpleFormatter,
                     ::SimpleCov::Formatter::HTMLFormatter,
