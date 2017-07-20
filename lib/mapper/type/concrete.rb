@@ -136,7 +136,7 @@ module AMA
             copy = instantiate(context, object)
             @attributes.values.each do |attribute|
               value = attribute.extract(object)
-              attribute.set(copy, block.call(attribute, value))
+              attribute.set(copy, yield(attribute, value))
             end
             copy
           end

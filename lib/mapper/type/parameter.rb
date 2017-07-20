@@ -22,7 +22,6 @@ module AMA
           # @!attribute id
           #   @return [Symbol]
           attr_reader :id
-          attr_reader :reference
 
           # @param [AMA::Entity::Mapper::Type] owner
           # @param [Symbol] id
@@ -39,11 +38,11 @@ module AMA
             {}
           end
 
-          def map(object)
+          def map(_)
             compliance_error("Called #map() method on #{self}", nil)
           end
 
-          %i[instance?, satisfied_by?].each do |method|
+          %i[instance? satisfied_by?].each do |method|
             define_method method do |_|
               false
             end

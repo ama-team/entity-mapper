@@ -42,7 +42,7 @@ module AMA
           abstract_method
         end
 
-        # rubocop:enable Metrics/LineLength
+        # rubocop:disable Metrics/LineLength
 
         # @param [Hash<AMA::Entity::Mapper::Type, AMA::Entity::Mapper::Type>] parameters
         # @return [AMA::Entity::Mapper::Type]
@@ -51,6 +51,8 @@ module AMA
             carrier.resolve_parameter(*tuple)
           end
         end
+
+        # rubocop:enable Metrics/LineLength
 
         # @return [TrueClass, FalseClass]
         def resolved?
@@ -81,8 +83,6 @@ module AMA
         def satisfied_by?(object)
           abstract_method
         end
-
-        # rubocop:disable Metrics/LineLength
 
         # Dissects object into pairs (triplets) of attribute and it's value
         # (and, optionally, path segment), then passes them one by one into

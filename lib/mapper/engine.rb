@@ -10,6 +10,8 @@ require_relative 'engine/context'
 module AMA
   module Entity
     class Mapper
+      # Main, user-unfriendly, library-entrypoint class. Provides interface for
+      # mapping one type into another.
       class Engine
         include Mixin::Errors
 
@@ -36,11 +38,11 @@ module AMA
 
         # @return [AMA::Entity::Mapper::Engine::Context] context
         def create_context(options)
-          options = options.merge({
+          options = options.merge(
             normalizer: @normalizer,
             denormalizer: @denormalizer,
             path: Path.new
-          })
+          )
           Context.new(**options)
         end
 

@@ -114,7 +114,7 @@ describe klass do
         expect(result).to be_a(derived.type)
         expect(result.value).to be_a(entity.type)
         expect(result.value.id).to eq(source[:value][:id])
-        expect(result.value.number).to eq (source[:value][:number])
+        expect(result.value.number).to eq(source[:value][:number])
       end
     end
   end

@@ -6,6 +6,7 @@ module AMA
   module Entity
     class Mapper
       class Type
+        # TODO: deprecate
         # A reference for parameter defined in particular type
         # Acts as a proxy, delegating method calls to whatever lies as specified
         # parameter in owner
@@ -34,7 +35,7 @@ module AMA
           end
 
           Type.instance_methods(false).each do |method|
-            next if self.instance_methods(false).include?(method)
+            next if instance_methods(false).include?(method)
             define_method(method) do |*args|
               @owner.parameters[@id].send(method, *args)
             end
