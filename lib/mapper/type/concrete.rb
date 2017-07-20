@@ -3,7 +3,6 @@
 require_relative '../type'
 require_relative '../mixin/errors'
 require_relative 'attribute'
-require_relative 'reference'
 require_relative 'parameter'
 
 module AMA
@@ -82,12 +81,7 @@ module AMA
           attr_accessor :mapper
 
           def initialize(type)
-            unless type.is_a?(Class) || type.is_a?(Module)
-              message = 'Expected concrete type to be instantiated with ' \
-                "Class/Module instance, got #{type}"
-              compliance_error(message, nil)
-            end
-            @type = type
+            @type = validate_type!(type)
             @parameters = {}
             @attributes = {}
           end
@@ -117,7 +111,7 @@ module AMA
           # Creates new type parameter
           #
           # @param [Symbol] id
-          # @return [AMA::Entity::Mapper::Type::Reference]
+          # @return [AMA::Entity::Mapper::Type::Parameter]
           def parameter!(id)
             id = id.to_sym
             return parameters[id] if parameters.key?(id)
@@ -151,7 +145,7 @@ module AMA
           end
 
           def hash
-            @type.hash ^ @parameters.hash ^ @attributes.hash
+            @type.hash
           end
 
           def eql?(other)
@@ -178,6 +172,13 @@ module AMA
             message = "Failed to instantiate type #{self} from class, " \
               'is it\'s #initialize() parameterless?'
             mapping_error(message, parent: e, context: context)
+          end
+
+          def validate_type!(type)
+            return type if type.is_a?(Class) || type.is_a?(Module)
+            message = 'Expected concrete type to be instantiated with ' \
+              "Class/Module instance, got #{type}"
+            compliance_error(message, nil)
           end
         end
       end

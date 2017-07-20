@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require_relative 'reference'
 require_relative 'any'
 require_relative '../type'
 require_relative '../mixin/errors'
@@ -58,10 +57,6 @@ module AMA
 
           def resolved!(context = nil)
             compliance_error("Type #{self} is not resolved", context: context)
-          end
-
-          def reference
-            Reference.new(@owner, @id)
           end
 
           def to_s
