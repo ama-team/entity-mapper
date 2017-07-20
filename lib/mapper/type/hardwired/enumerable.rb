@@ -12,7 +12,7 @@ module AMA
           class Enumerable < Concrete
             def initialize
               super(::Enumerable)
-              attribute = attribute!(:_value, parameter(:T), virtual: true)
+              attribute = attribute!(:_value, parameter!(:T), virtual: true)
 
               self.normalizer = lambda do |input, *|
                 input.map(&:itself)

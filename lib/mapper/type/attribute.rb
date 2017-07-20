@@ -67,6 +67,7 @@ module AMA
           def resolve_parameter(parameter, substitution)
             clone.tap do |clone|
               clone.types = types.map do |type|
+                next substitution if type == parameter
                 type.resolve_parameter(parameter, substitution)
               end
             end
@@ -86,7 +87,7 @@ module AMA
           end
 
           def to_s
-            "Attribute :#{name} (#{owner})"
+            "Attribute #{owner.type}.#{name}"
           end
 
           private

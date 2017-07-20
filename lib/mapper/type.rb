@@ -54,12 +54,12 @@ module AMA
 
         # @return [TrueClass, FalseClass]
         def resolved?
-          [parameters, attributes].flat_map(&:values).all?(&:resolved?)
+          attributes.values.all?(&:resolved?)
         end
 
         def resolved!(context = nil)
           context ||= Context.new
-          [parameters, attributes].flat_map(&:values).each do |item|
+          attributes.values.each do |item|
             item.resolved!(context)
           end
         end

@@ -15,8 +15,8 @@ module AMA
 
             def initialize
               super(::Hash)
-              attribute!(:_key, parameter(:K), virtual: true)
-              attribute!(:_value, parameter(:V), virtual: true)
+              attribute!(:_key, parameter!(:K), virtual: true)
+              attribute!(:_value, parameter!(:V), virtual: true)
             end
 
             def mapper

@@ -15,6 +15,9 @@ describe klass do
     entity_class = Class.new do
       attr_accessor :id
       attr_accessor :number
+      def self.to_s
+        'entity'
+      end
     end
     type_class.new(entity_class).tap do |type|
       type.attribute!(:id, Symbol)
@@ -25,9 +28,12 @@ describe klass do
   let(:parametrized_entity) do
     entity_class = Class.new do
       attr_accessor :value
+      def self.to_s
+        'parametrized entity'
+      end
     end
     type_class.new(entity_class).tap do |type|
-      type.attribute!(:value, type.parameter(:T))
+      type.attribute!(:value, type.parameter!(:T))
     end
   end
 
@@ -94,13 +100,22 @@ describe klass do
       it 'should denormalize parametrized entity' do
         source = { value: 12 }
         type = parametrized_entity
-        type.resolve(type.parameter!(:T) => type_class.new(Integer))
-        result = engine.map(source, type)
-        expect(result).to be_a(type.type)
+        derived = type.resolve(type.parameter!(:T) => type_class.new(Integer))
+        result = engine.map(source, derived)
+        expect(result).to be_a(derived.type)
         expect(result.value).to eq(12)
       end
 
-      it 'should denormalize nested entity'
+      it 'should denormalize nested entity' do
+        source = { value: { id: :bill, number: 12 } }
+        type = parametrized_entity
+        derived = type.resolve(type.parameter!(:T) => entity)
+        result = engine.map(source, derived)
+        expect(result).to be_a(derived.type)
+        expect(result.value).to be_a(entity.type)
+        expect(result.value.id).to eq(source[:value][:id])
+        expect(result.value.number).to eq (source[:value][:number])
+      end
     end
   end
 end

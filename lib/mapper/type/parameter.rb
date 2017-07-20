@@ -66,7 +66,7 @@ module AMA
           end
 
           def to_s
-            "Variable Type :#{id} (declared in #{owner})"
+            "Parameter #{owner.type}.#{id}"
           end
 
           def hash

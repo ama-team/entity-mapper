@@ -113,66 +113,63 @@ describe klass do
     end
   end
 
-  # hiding segfaulted tests
-  unless 1 == 1
-    describe '#resolved?' do
-      it 'should return true if no parameters were introduced' do
-        expect(klass.new(dummy_class).resolved?).to be true
-      end
-
-      it 'should return false if there is at least one unresolved parameter' do
-        expect(parametrized.resolved?).to be false
-      end
-
-      it 'should return false if there is at least one unresolved attribute' do
-        expect(unresolved_attribute.resolved?).to be false
-      end
-
-      it 'should return true once all parameters are resolved' do
-        type = parametrized
-        type.parameter_types[:T] = klass.new(Class.new)
-        expect(type.resolved?).to be true
-      end
+  describe '#resolved?' do
+    it 'should return true if no parameters were introduced' do
+      expect(klass.new(dummy_class).resolved?).to be true
     end
 
-    describe '#resolve' do
-      it 'should create new resolved type on call' do
-        type = parametrized
-        expect(type.resolved?).to be false
-        derivation = type.resolve(type.parameter!(:T) => resolved)
-        expect(derivation.resolved?).to be true
-      end
-
-      it 'should recursively resolve types' do
-        type = nested
-        expect(type.resolved?).to be false
-        derivation = type.resolve(type.parameter!(:T) => resolved)
-        expect(derivation.resolved?).to be true
-      end
+    it 'should return false if there is at least one unresolved parameter' do
+      expect(parametrized.resolved?).to be false
     end
 
-    describe '#resolved!' do
-      it 'should raise error if at least one parameter is unresolved' do
-        proc = lambda do
-          parametrized.resolved!
-        end
-        expect(&proc).to raise_error(compliance_error_class)
-      end
+    it 'should return false if there is at least one unresolved attribute' do
+      expect(unresolved_attribute.resolved?).to be false
+    end
 
-      it 'should raise error if at least one attribute is unresolved' do
-        proc = lambda do
-          unresolved_attribute.resolved!
-        end
-        expect(&proc).to raise_error(compliance_error_class)
-      end
+    it 'should return true once all parameters are resolved' do
+      type = parametrized
+      type.attributes[:value].types = [klass.new(Class.new)]
+      expect(type.resolved?).to be true
+    end
+  end
 
-      it 'should not raise error if all parameters and attributes are resolved' do
-        type = parametrized
-        subject = type.parameters[:T]
-        replacement = klass.new(Class.new)
-        type.resolve(subject => replacement)
-        type.resolved!
+  describe '#resolve' do
+    it 'should create new resolved type on call' do
+      type = parametrized
+      expect(type.resolved?).to be false
+      derivation = type.resolve(type.parameter!(:T) => resolved)
+      expect(derivation.resolved?).to be true
+    end
+
+    it 'should recursively resolve types' do
+      type = nested
+      expect(type.resolved?).to be false
+      derivation = type.resolve(type.parameter!(:T) => resolved)
+      expect(derivation.resolved?).to be true
+    end
+  end
+
+  describe '#resolved!' do
+    it 'should raise error if at least one parameter is unresolved' do
+      proc = lambda do
+        parametrized.resolved!
       end
+      expect(&proc).to raise_error(compliance_error_class)
+    end
+
+    it 'should raise error if at least one attribute is unresolved' do
+      proc = lambda do
+        unresolved_attribute.resolved!
+      end
+      expect(&proc).to raise_error(compliance_error_class)
+    end
+
+    it 'should not raise error if all parameters and attributes are resolved' do
+      type = parametrized
+      subject = type.parameter!(:T)
+      replacement = klass.new(Class.new)
+      derivation = type.resolve(subject => replacement)
+      derivation.resolved!
     end
   end
 

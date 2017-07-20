@@ -19,11 +19,8 @@ module AMA
           #   @return [Class]
           attr_accessor :type
           # @!attribute parameters
-          #   @return [Hash{Symbol, AMA::Entity::Mapper::Type::Reference}]
-          attr_accessor :parameters
-          # @!attribute parameter_types
           #   @return [Hash{Symbol, AMA::Entity::Mapper::Type}]
-          attr_accessor :parameter_types
+          attr_accessor :parameters
           # @!attribute attributes
           #   @return [Hash{Symbol, AMA::Entity::Mapper::Type::Attribute}]
           attr_accessor :attributes
@@ -92,7 +89,6 @@ module AMA
             end
             @type = type
             @parameters = {}
-            @parameter_types = {}
             @attributes = {}
           end
 
@@ -104,8 +100,9 @@ module AMA
             return false unless instance?(object)
             attributes.values.each do |attribute|
               value = attribute.extract(object)
-              return false unless attribute..satisfied_by?(value)
+              return false unless attribute.satisfied_by?(value)
             end
+            true
           end
 
           def attribute!(name, *types, **options)
@@ -124,8 +121,7 @@ module AMA
           def parameter!(id)
             id = id.to_sym
             return parameters[id] if parameters.key?(id)
-            parameter_types[id] = Parameter.new(self, id)
-            parameters[id] = parameter_types[id].reference
+            parameters[id] = Parameter.new(self, id)
           end
 
           def instantiate(context = nil, data = nil)
@@ -151,12 +147,6 @@ module AMA
                 [key, value.resolve_parameter(parameter, substitution)]
               end
               clone.attributes = Hash[intermediate]
-              parameters.each do |key, value|
-                if value == parameter
-                  clone.parameters[key] = parameter
-                  clone.parameter_types[key] = parameter
-                end
-              end
             end
           end
 
