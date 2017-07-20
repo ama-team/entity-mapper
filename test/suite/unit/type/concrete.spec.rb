@@ -100,11 +100,11 @@ describe klass do
 
   describe '#map' do
     it 'should call external mapper if supplied' do
-      mapper = lambda do |*| end
+      mapper = ->(*) {}
       type = klass.new(dummy)
       type.mapper = mapper
       expect(mapper).to receive(:call)
-      type.map(nil) do end
+      type.map(nil) {}
     end
 
     it 'should iterate through attributes if no mapper is supplied' do
