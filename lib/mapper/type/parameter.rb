@@ -8,10 +8,10 @@ module AMA
   module Entity
     class Mapper
       class Type
-        # This class represents variable type - an unknown-until-runtime type
+        # This class represents parameter type - an unknown-until-runtime type
         # that belongs to particular other type. For example,
         # Hash<Symbol, Integer> may be described as ConcreteType(Hash) with
-        # variables _key: Symbol and _value: Integer
+        # parameters _key: Symbol and _value: Integer
         class Parameter < Type
           include Mixin::Errors
 
@@ -27,14 +27,6 @@ module AMA
           def initialize(owner, id)
             @owner = owner
             @id = id
-          end
-
-          def attributes
-            {}
-          end
-
-          def parameters
-            {}
           end
 
           %i[instance? satisfied_by?].each do |method|

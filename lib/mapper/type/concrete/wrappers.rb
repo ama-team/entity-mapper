@@ -31,29 +31,44 @@ module AMA
                 install_method(factory, :create, wrapper)
               end
 
-              def enumerator(type, proc)
-                lambda do |object, context = nil|
+              def enumerator(proc)
+                lambda do |object, type, context = nil|
                   begin
-                    proc.call(object, context)
+                    proc.call(object, type, context)
                   rescue ArgumentError => e
                     message = "Failed to create enumerator for type #{type}"
                     if e.is_a?(StandardError)
                       message += '. Does enumerator factory conform to ' \
-                        'lambda(object, context = nil) interface?'
+                        'lambda(object, type, context = nil) interface?'
                     end
                     mapping_error(message, context: context, parent: e)
                   end
                 end
               end
 
-              def acceptor(type, proc)
-                lambda do |object, context = nil|
+              def acceptor(proc)
+                lambda do |object, type, context = nil|
                   begin
-                    proc.call(object, context)
+                    proc.call(object, type, context)
                   rescue ArgumentError => e
                     message = "Failed to create acceptor for type #{type}"
                     if e.is_a?(StandardError)
                       message += '. Does acceptor factory conform to ' \
+                        'lambda(object, type, context = nil) interface?'
+                    end
+                    mapping_error(message, context: context, parent: e)
+                  end
+                end
+              end
+
+              def extractor(extractor_factory)
+                lambda do |object, type, context = nil|
+                  begin
+                    extractor_factory.call(object, type, context)
+                  rescue ArgumentError => e
+                    message = "Failed to create extractor for type #{type}"
+                    if e.is_a?(StandardError)
+                      message += '. Does extractor factory conform to ' \
                         'lambda(object, context = nil) interface?'
                     end
                     mapping_error(message, context: context, parent: e)

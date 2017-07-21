@@ -97,7 +97,7 @@ describe klass do
 
     it 'should wrap custom enumerator factory in safety wrapper' do
       type = klass.new(dummy)
-      type.enumerator = lambda do |_a, _b, _c|
+      type.enumerator = lambda do |_a, _b, _c, _d|
         Enumerator.new do |yielder|
           yielder << [double(name: :id), :admin, nil]
         end
@@ -120,9 +120,39 @@ describe klass do
 
     it 'should wrap custom acceptor factory in safety wrapper' do
       type = klass.new(dummy)
-      type.acceptor = ->(_a, _b, _c) {}
+      type.acceptor = ->(_a, _b, _c, _d) {}
       proc = lambda do
         type.acceptor(nil)
+      end
+      expect(&proc).to raise_error(mapping_error_class, /interface|contract/)
+    end
+  end
+
+  describe '#extractor' do
+    it 'should provide default extractor' do
+      type = klass.new(dummy)
+      attribute = double(name: :id, type: klass.new(Integer), virtual: false)
+      type.attributes[:id] = attribute
+      data = { id: 12 }
+      proc = lambda do |consumer|
+        type.extractor(data).each(&consumer)
+      end
+      expect(&proc).to yield_with_args([attribute, 12, anything])
+    end
+
+    it 'should reject anything but hash when using default extractor' do
+      type = klass.new(dummy)
+      proc = lambda do
+        type.extractor(Object.new)
+      end
+      expect(&proc).to raise_error(mapping_error_class)
+    end
+
+    it 'should wrap custom extractor wrapper in safety wrapper' do
+      type = klass.new(dummy)
+      type.extractor = ->(_a, _b, _c, _d) {}
+      proc = lambda do
+        type.extractor({})
       end
       expect(&proc).to raise_error(mapping_error_class, /interface|contract/)
     end

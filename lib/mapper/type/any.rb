@@ -12,14 +12,6 @@ module AMA
 
           INSTANCE = new
 
-          def attributes
-            {}
-          end
-
-          def parameters
-            {}
-          end
-
           def parameter!(*)
             compliance_error('Tried to declare parameter on Any type')
           end

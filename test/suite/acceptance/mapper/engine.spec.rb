@@ -3,8 +3,8 @@
 require_relative '../../../../lib/mapper/engine'
 require_relative '../../../../lib/mapper/type/registry'
 require_relative '../../../../lib/mapper/type/concrete'
-require_relative '../../../../lib/mapper/type/hardwired/hash'
-require_relative '../../../../lib/mapper/type/hardwired/enumerable'
+require_relative '../../../../lib/mapper/type/hardwired/hash_type'
+require_relative '../../../../lib/mapper/type/hardwired/enumerable_type'
 
 klass = ::AMA::Entity::Mapper::Engine
 type_class = ::AMA::Entity::Mapper::Type::Concrete
@@ -38,11 +38,11 @@ describe klass do
   end
 
   let(:hash_type) do
-    ::AMA::Entity::Mapper::Type::Hardwired::Hash.new
+    ::AMA::Entity::Mapper::Type::Hardwired::HashType.new
   end
 
   let(:enumerable_type) do
-    ::AMA::Entity::Mapper::Type::Hardwired::Enumerable.new
+    ::AMA::Entity::Mapper::Type::Hardwired::EnumerableType.new
   end
 
   let(:registry) do

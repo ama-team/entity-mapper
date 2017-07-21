@@ -14,20 +14,27 @@ module AMA
 
         # @return [Hash{Symbol, AMA::Entity::Mapper::Type::Attribute}]
         def attributes
-          abstract_method
+          {}
         end
 
         # @return [Hash{Symbol, AMA::Entity::Mapper::Type}]
         def parameters
-          abstract_method
+          {}
+        end
+
+        # @param [Symbol] id
+        # @return [TrueClass, FalseClass]
+        def attribute?(id)
+          attributes.key?(id.to_sym)
         end
 
         # @param [Symbol] id
         # @return [TrueClass, FalseClass]
         def parameter?(id)
-          parameters.key?(id)
+          parameters.key?(id.to_sym)
         end
 
+        # :nocov:
         # Creates parameter if it doesn't yet exist and returns it
         #
         # @param [Symbol] id
@@ -41,6 +48,7 @@ module AMA
         def resolve_parameter(parameter, substitution)
           abstract_method
         end
+        # :nocov:
 
         # rubocop:disable Metrics/LineLength
 
@@ -59,41 +67,36 @@ module AMA
           attributes.values.all?(&:resolved?)
         end
 
+        # Validates that type is fully resolved, otherwise raises an error
+        # @param [AMA::Entity::Mapper::Context] context
         def resolved!(context = nil)
           context ||= Context.new
-          attributes.values.each do |item|
-            item.resolved!(context)
+          unless parameters.empty?
+            compliance_error("Type #{self} is not resolved", context: context)
+          end
+          attributes.values.each do |attribute|
+            attribute.resolved!(context)
           end
         end
 
+        # :nocov:
         # @param [Object] object
         def instance?(object)
           abstract_method
         end
+        # :nocov:
 
         # @param [Object] object
         # @param [AMA::Entity::Mapper::Context] context
         def instance!(object, context = nil)
-          return if instance?(object) || object.nil?
+          return if instance?(object)
           message = "Expected to receive instance of #{self}, got " \
             "#{object.class}"
           mapping_error(message, context: context)
         end
 
+        # :nocov:
         def satisfied_by?(object)
-          abstract_method
-        end
-
-        # Dissects object into pairs (triplets) of attribute and it's value
-        # (and, optionally, path segment), then passes them one by one into
-        # supplied block and assembles new type instance.
-        #
-        # @param [Object] object
-        # @yieldparam attribute [AMA::Entity::Mapper::Type::Attribute]
-        # @yieldparam value [Object]
-        # @yieldparam segment [AMA::Entity::Mapper::Path::Segment] optional
-        # @yieldreturn [Object] processed value
-        def map(object)
           abstract_method
         end
 
@@ -104,22 +107,27 @@ module AMA
         def eql?(other)
           abstract_method
         end
+        # :nocov:
 
         def ==(other)
           eql?(other)
         end
 
+        # :nocov:
         def to_s
           abstract_method
         end
+        # :nocov:
 
         protected
 
+        # :nocov:
         def abstract_method
           message = "Abstract method #{__callee__} hasn't been implemented " \
             "in class #{self.class}"
           raise message
         end
+        # :nocov:
       end
     end
   end

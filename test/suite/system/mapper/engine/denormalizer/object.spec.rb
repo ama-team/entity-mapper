@@ -63,6 +63,9 @@ describe klass do
     it 'should instantiate simple class from hash' do
       type = type_class.new(simple_class)
       source = { alpha: 1, beta: 2, gamma: 3 }
+      source.keys.each do |key|
+        type.attribute!(key, Integer)
+      end
       result = denormalizer.denormalize(source, context, type)
       expect(result).to be_a(type.type)
       source.each do |key, value|
@@ -73,6 +76,9 @@ describe klass do
     it 'should instantiate simple class without setters from hash' do
       type = type_class.new(reader_class)
       source = { alpha: 1, beta: 2, gamma: 3 }
+      source.keys.each do |key|
+        type.attribute!(key, Integer)
+      end
       result = denormalizer.denormalize(source, context, type)
       expect(result).to be_a(type.type)
       source.each do |key, value|
@@ -99,6 +105,7 @@ describe klass do
     it 'should not use denormalization class method if not allowed to' do
       type = type_class.new(custom_denormalizer_class)
       source = { value: 12 }
+      type.attribute!(:value, Integer)
       result = denormalizer.denormalize(source, forbidding_context, type)
       expect(result).to be_a(type.type)
       expect(result.value).to eq(source[:value])

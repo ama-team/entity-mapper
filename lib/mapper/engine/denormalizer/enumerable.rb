@@ -24,6 +24,8 @@ module AMA
             # @param [AMA::Entity::Mapper::Type::Concrete] target_type
             def denormalize(source, _context, target_type)
               return source if source.is_a?(target_type.type)
+              # TODO: this is cool and would probably work, however, provided
+              # factory should be used instead
               target_type.type.new(source)
             rescue ArgumentError => e
               message = "Failed to instantiate #{target_type}: #{e.message}." \
@@ -35,13 +37,6 @@ module AMA
             end
 
             private
-
-            def disassemble(object)
-              intermediate = object.instance_variables.map do |variable|
-                [variable[1..-1].to_sym, object.instance_variable_get(variable)]
-              end
-              Hash[intermediate]
-            end
 
             def instantiate(type)
               type.type.new

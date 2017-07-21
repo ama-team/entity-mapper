@@ -7,22 +7,25 @@ klass = ::AMA::Entity::Mapper::Type::Parameter
 compliance_error_class = ::AMA::Entity::Mapper::Exception::ComplianceError
 
 describe klass do
+  let(:dummy) do
+    klass.new(double(type: Class.new), :id)
+  end
+
   describe '#satisfied_by?' do
     it 'should return false for anything' do
-      expect(klass.new(nil, :id).satisfied_by?(nil)).to be false
+      expect(dummy.satisfied_by?(nil)).to be false
     end
   end
 
   describe '#instance?' do
     it 'should return false for anything' do
-      expect(klass.new(nil, :id).instance?(nil)).to be false
+      expect(dummy.instance?(nil)).to be false
     end
   end
 
   describe '#resolve_parameter' do
     it 'should pass call through' do
-      type = klass.new(nil, :id)
-      expect(type.resolve_parameter(nil, nil)).to eq(type)
+      expect(dummy.resolve_parameter(nil, nil)).to eq(dummy)
     end
   end
 
@@ -35,7 +38,7 @@ describe klass do
       expect(klass.new(nil, :alpha)).not_to eq(klass.new(nil, :beta))
     end
 
-    it 'should be equal to another instance with same owner id' do
+    it 'should be equal to another instance with same owner and id' do
       expect(klass.new(:a, :b)).to eq(klass.new(:a, :b))
     end
   end
@@ -49,7 +52,7 @@ describe klass do
 
   describe '#resolved?' do
     it 'should always return false' do
-      expect(klass.new(nil, nil).resolved?).to be false
+      expect(dummy.resolved?).to be false
     end
   end
 

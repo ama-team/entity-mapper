@@ -7,6 +7,7 @@ require_relative 'parameter'
 require_relative 'concrete/factory'
 require_relative 'concrete/enumerator'
 require_relative 'concrete/acceptor'
+require_relative 'concrete/extractor'
 require_relative 'concrete/wrappers'
 
 module AMA
@@ -58,17 +59,23 @@ module AMA
           # @!attribute acceptor
           #   @return [Proc]
           attr_reader :acceptor
+          # @!attribute extractor
+          #   @return [Proc]
+          attr_reader :extractor
           # @!attribute factory
           #   @return [Proc]
           attr_reader :factory
 
-          def initialize(type)
-            @type = validate_type!(type)
+          def initialize(klass)
+            @type = validate_type!(klass)
             @parameters = {}
             @attributes = {}
             self.factory = Factory.new(self)
-            self.enumerator = ->(object, *) { Enumerator.new(self, object) }
-            self.acceptor = ->(object, *) { Acceptor.new(self, object) }
+            self.enumerator = lambda do |object, type, *|
+              Enumerator.new(type, object)
+            end
+            self.acceptor = ->(object, type, *) { Acceptor.new(type, object) }
+            self.extractor = ->(object, type, *) { Extractor.new(type, object) }
           end
 
           # Tells if provided object is an instance of this type.
@@ -124,7 +131,7 @@ module AMA
             unless parameter.is_a?(Parameter)
               message = "Non-parameter type #{parameter} " \
                 'supplied for resolution'
-              mapping_error(message, nil)
+              compliance_error(message, nil)
             end
             clone.tap do |clone|
               intermediate = attributes.map do |key, value|
@@ -142,19 +149,27 @@ module AMA
           end
 
           def enumerator(object, context = nil)
-            @enumerator.call(object, context)
+            @enumerator.call(object, self, context)
           end
 
           def enumerator=(enumerator_factory)
-            @enumerator = Wrappers.enumerator(self, enumerator_factory)
+            @enumerator = Wrappers.enumerator(enumerator_factory)
           end
 
           def acceptor(object, context = nil)
-            @acceptor.call(object, context)
+            @acceptor.call(object, self, context)
           end
 
           def acceptor=(acceptor_factory)
-            @acceptor = Wrappers.acceptor(self, acceptor_factory)
+            @acceptor = Wrappers.acceptor(acceptor_factory)
+          end
+
+          def extractor(object, context = nil)
+            @extractor.call(object, self, context)
+          end
+
+          def extractor=(extractor_factory)
+            @extractor = Wrappers.extractor(extractor_factory)
           end
 
           def hash

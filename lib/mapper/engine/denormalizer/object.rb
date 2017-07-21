@@ -24,13 +24,12 @@ module AMA
               return source if source.is_a?(target_type.type)
               handler = compute_handler(target_type, context)
               return target_type.type.send(handler, source, context) if handler
-              unless source.is_a?(Hash)
-                message = "Can't denormalize object #{target_type} " \
-                  "from anything but Hash, #{source.class} given"
-                mapping_error(message, nil)
+              entity = target_type.factory.create(context, source)
+              extractor = target_type.extractor(source)
+              acceptor = target_type.acceptor(entity, context)
+              extractor.each do |attribute, value, segment = nil|
+                acceptor.accept(attribute, value, segment)
               end
-              entity = target_type.instantiate
-              populate_object(entity, source)
               entity
             end
 

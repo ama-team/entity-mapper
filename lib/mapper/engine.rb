@@ -76,13 +76,27 @@ module AMA
           result = @denormalizer.denormalize(normalized, type, context)
           return result if type.satisfied_by?(result)
           type.instance!(result, context)
-          result = type.map(result) do |attribute, value, segment = nil|
-            segment = attribute.name unless segment
-            recursive_map(value, attribute.types, context.advance(segment))
-          end
+          result = map_attributes(result, type, context)
           return result if type.satisfied_by?(result)
           message = "Failed to map #{source.class} to type #{type}"
           mapping_error(message, context: context)
+        end
+
+        # @param [Object] entity
+        # @param [AMA::Entity::Mapper::Type] type
+        # @param [AMA::Entity::Mapper::Engine::Context] context
+        def map_attributes(entity, type, context)
+          enumerator = type.enumerator(entity)
+          acceptor = type.acceptor(entity)
+          enumerator.each do |attribute, value, segment = nil|
+            unless attribute.satisfied_by?(value)
+              segment = Path::Segment.attribute(attribute.name) unless segment
+              next_context = context.advance(segment)
+              value = recursive_map(value, attribute.types, next_context)
+            end
+            acceptor.accept(attribute, value, segment)
+          end
+          entity
         end
       end
     end

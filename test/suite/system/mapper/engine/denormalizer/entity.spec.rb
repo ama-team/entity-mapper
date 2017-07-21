@@ -51,12 +51,14 @@ describe klass do
   type_factory.call(:simple)
 
   type_factory.call(:factory) do |type|
-    type.factory = lambda do |*|
+    factory = Object.new
+    factory.define_singleton_method :create do |*|
       type.type.new.tap do |instance|
         instance.virtual = 1
         instance.value = 1
       end
     end
+    type.factory = factory
   end
 
   type_factory.call(:denormalizer) do |type|

@@ -27,24 +27,11 @@ module AMA
           attr_accessor :sensitive
 
           def initialize(owner, name, *types, **options)
-            @owner = owner
-            @name = name
-            @types = types
+            @owner = validate_owner!(owner)
+            @name = validate_name!(name)
+            @types = validate_types!(types)
             @sensitive = options.fetch(:sensitive, false)
             @virtual = options.fetch(:virtual, false)
-          end
-
-          def extract(object)
-            applicable_to!(object)
-            return object.send(@name) if object.respond_to?(@name)
-            object.instance_variable_get("@#{@name}")
-          end
-
-          def set(object, value)
-            applicable_to!(object)
-            method = "#{name}="
-            return object.send(method, value) if object.respond_to?(method)
-            object.instance_variable_set("@#{@name}", value)
           end
 
           def satisfied_by?(value)
@@ -92,17 +79,9 @@ module AMA
 
           private
 
-          def applicable_to!(object)
-            return if @owner.instance?(object)
-            message = "Can't extract attribute #{@name} " \
-              "from #{object.class}, expected #{@owner}"
-            compliance_error(message)
-          end
-
           def validate_owner!(owner)
-            require_relative 'concrete'
-            return owner if owner.is_a?(Concrete)
-            message = 'Provided owner has to be a Concrete Type instance,' \
+            return owner if owner.is_a?(Type)
+            message = 'Provided owner has to be a Type instance,' \
               " #{owner.class} received"
             compliance_error(message)
           end
@@ -111,6 +90,16 @@ module AMA
             return name if name.is_a?(Symbol)
             message = "Provided name has to be Symbol, #{name.class} received"
             compliance_error(message)
+          end
+
+          def validate_types!(types)
+            compliance_error("No types provided for #{self}") if types.empty?
+            types.each do |type|
+              next if type.is_a?(Type)
+              message = 'Provided type has to be a Type instance, ' \
+                "#{type.class} received"
+              compliance_error(message)
+            end
           end
         end
       end
