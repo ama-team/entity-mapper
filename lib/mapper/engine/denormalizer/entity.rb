@@ -44,10 +44,12 @@ module AMA
                   "anything but hash (#{structure.class} supplied)"
                 mapping_error(message, context: context)
               end
-              entity = instantiate(target_type, context, structure)
+              entity = target_type.factory.create(context, structure)
               attributes = target_type.attributes.values
               attributes = filter_attributes(attributes, structure)
-              populate_object(entity, extract_attributes(structure, attributes))
+              extracted_attributes = extract_attributes(structure, attributes)
+              # TODO: use acceptor
+              set_object_attributes(entity, extracted_attributes)
             end
 
             def filter_attributes(attributes, structure)
@@ -67,13 +69,6 @@ module AMA
                 [name, value]
               end
               Hash[intermediate]
-            end
-
-            def instantiate(type, context, structure)
-              return type.factory.call(context, structure) if type.factory
-              type.type.new
-            rescue StandardError => e
-              mapping_error("Failed to instantiate #{type}", e)
             end
           end
         end

@@ -24,16 +24,24 @@ describe klass do
     end
   end
 
-  describe '#instantiate' do
+  describe '#factory' do
+    it 'should provide default factory if none was set' do
+      type = klass.new(dummy)
+      factory = type.factory
+      expect(factory.create).to be_a(dummy)
+    end
+
     it 'should wrap error from custom factory' do
       type = klass.new(Class.new).tap do |instance|
-        instance.factory = lambda do |*|
+        factory = Object.new
+        factory.define_singleton_method :create do |*|
           raise 'woot'
         end
+        instance.factory = factory
       end
 
       proc = lambda do
-        type.instantiate
+        type.factory.create
       end
 
       expect(&proc).to raise_error(mapping_error_class)
@@ -45,7 +53,7 @@ describe klass do
       end
 
       proc = lambda do
-        klass.new(dummy).instantiate
+        klass.new(dummy).factory.create
       end
 
       expect(&proc).to raise_error(mapping_error_class, /initialize/)
@@ -59,10 +67,64 @@ describe klass do
       end
 
       proc = lambda do
-        klass.new(dummy).instantiate
+        klass.new(dummy).factory.create
       end
 
       expect(&proc).to raise_error(mapping_error_class)
+    end
+
+    it 'should wrap invalid #create() factory method signature' do
+      type = klass.new(dummy)
+      factory = Object.new
+      factory.define_singleton_method(:create) { |a, b, c| }
+      type.factory = factory
+      proc = lambda do
+        type.factory.create
+      end
+      expect(&proc).to raise_error(mapping_error_class, /interface|contract/)
+    end
+  end
+
+  describe '#enumerator' do
+    it 'should provide default enumerator' do
+      type = klass.new(dummy)
+      type.attributes[:id] = double(name: :id)
+      proc = lambda do |handler|
+        type.enumerator(dummy.new).each(&handler)
+      end
+      expect(&proc).to yield_with_args([type.attributes[:id], nil, anything])
+    end
+
+    it 'should wrap custom enumerator factory in safety wrapper' do
+      type = klass.new(dummy)
+      type.enumerator = lambda do |_a, _b, _c|
+        Enumerator.new do |yielder|
+          yielder << [double(name: :id), :admin, nil]
+        end
+      end
+      proc = lambda do
+        type.enumerator(nil)
+      end
+      expect(&proc).to raise_error(mapping_error_class, /interface|contract/)
+    end
+  end
+
+  describe '#acceptor' do
+    it 'should provide default acceptor' do
+      type = klass.new(dummy)
+      object = dummy.new
+      doubler = double(name: :id)
+      type.acceptor(object).accept(doubler, 12, doubler)
+      expect(object.instance_variable_get(:@id)).to eq(12)
+    end
+
+    it 'should wrap custom acceptor factory in safety wrapper' do
+      type = klass.new(dummy)
+      type.acceptor = ->(_a, _b, _c) {}
+      proc = lambda do
+        type.acceptor(nil)
+      end
+      expect(&proc).to raise_error(mapping_error_class, /interface|contract/)
     end
   end
 
@@ -95,30 +157,6 @@ describe klass do
 
     it 'should return false if provided argument is not an instance of class' do
       expect(klass.new(Class.new).instance?(Class.new)).to be false
-    end
-  end
-
-  describe '#map' do
-    it 'should call external mapper if supplied' do
-      mapper = ->(*) {}
-      type = klass.new(dummy)
-      type.mapper = mapper
-      expect(mapper).to receive(:call)
-      type.map(nil) {}
-    end
-
-    it 'should iterate through attributes if no mapper is supplied' do
-      value = 12
-      object = {}
-      attribute = double(name: :value)
-      expect(attribute).to receive(:extract).and_return(value)
-      expect(attribute).to receive(:set).and_return(nil)
-      type = klass.new(dummy)
-      type.attributes[:value] = attribute
-      proc = lambda do |block|
-        type.map(object, &block)
-      end
-      expect(&proc).to yield_with_args(attribute, value)
     end
   end
 end

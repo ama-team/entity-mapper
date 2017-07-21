@@ -4,13 +4,19 @@ require_relative '../type'
 require_relative '../mixin/errors'
 require_relative 'attribute'
 require_relative 'parameter'
+require_relative 'concrete/factory'
+require_relative 'concrete/enumerator'
+require_relative 'concrete/acceptor'
+require_relative 'concrete/wrappers'
 
 module AMA
   module Entity
     class Mapper
       class Type
-        # Used to describe concrete type (that means, class is already known,
-        # though it's parameters may be resolved later).
+        # Basic type class that describes specific type. Type may have
+        # arbitrary number of attributes (regular and virtual) and parameters -
+        # types that are known until runtime (this is usually referenced as
+        # generics).
         class Concrete < Type
           include Mixin::Errors
 
@@ -18,7 +24,7 @@ module AMA
           #   @return [Class]
           attr_accessor :type
           # @!attribute parameters
-          #   @return [Hash{Symbol, AMA::Entity::Mapper::Type}]
+          #   @return [Hash{Symbol, AMA::Entity::Mapper::Type::Parameter}]
           attr_accessor :parameters
           # @!attribute attributes
           #   @return [Hash{Symbol, AMA::Entity::Mapper::Type::Attribute}]
@@ -46,59 +52,51 @@ module AMA
           # @!attribute denormalizer
           #   @return [Proc]
           attr_accessor :denormalizer
-          # @!attribute validator Ruby block that validates result
+          # @!attribute enumerator
           #   @return [Proc]
-          attr_accessor :validator
+          attr_reader :enumerator
+          # @!attribute acceptor
+          #   @return [Proc]
+          attr_reader :acceptor
           # @!attribute factory
           #   @return [Proc]
-          attr_accessor :factory
-          # A special processor that takes in existing object instance, then
-          # uses passed block to process them and reconstructs new instance -
-          # this is used to traverse objects without direct traversal:
-          #
-          # mapper = lambda do |instance, context = nil, &block|
-          #   copy = instance.clone
-          #   attributes.values.each do |attribute|
-          #     value = attribute.extract(instance)
-          #     attribute.set(copy, block.call(attribute, value))
-          #   end
-          # end
-          #
-          # Or to traverse hash as it would be regular type:
-          #
-          # mapper = lambda do |instance, context = nil, &block|
-          #   copy = {}
-          #   instance.each do |key, val|
-          #     key = block.call(attributes[:_key], key, Segment.index(key))
-          #     val = block.call(attributes[:_val], val, Segment.index(key))
-          #     copy[key] = val
-          #   end
-          #   copy
-          # end
-          #
-          # @!attribute mapper
-          #   @return [Proc]
-          attr_accessor :mapper
+          attr_reader :factory
 
           def initialize(type)
             @type = validate_type!(type)
             @parameters = {}
             @attributes = {}
+            self.factory = Factory.new(self)
+            self.enumerator = ->(object, *) { Enumerator.new(self, object) }
+            self.acceptor = ->(object, *) { Acceptor.new(self, object) }
           end
 
+          # Tells if provided object is an instance of this type.
+          #
+          # This doesn't mean all of it's attributes do match requested types.
+          #
+          # @param [Object] object
+          # @return [TrueClass, FalseClass]
           def instance?(object)
             object.is_a?(@type)
           end
 
+          # Tells if provided object fully complies to type spec.
+          #
+          # @param [Object] object
+          # @return [TrueClass, FalseClass]
           def satisfied_by?(object)
             return false unless instance?(object)
-            attributes.values.each do |attribute|
-              value = attribute.extract(object)
-              return false unless attribute.satisfied_by?(value)
+            enumerator(object).all? do |attribute, value, *|
+              attribute.satisfied_by?(value)
             end
-            true
           end
 
+          # Shortcut for attribute creation.
+          #
+          # @param [String, Symbol] name
+          # @param [Array<AMA::Entity::Mapper::Type>] types
+          # @param [Hash] options
           def attribute!(name, *types, **options)
             types = types.map do |type|
               next parameter!(type) if type.is_a?(Symbol)
@@ -118,30 +116,45 @@ module AMA
             parameters[id] = Parameter.new(self, id)
           end
 
-          def instantiate(context = nil, data = nil)
-            return invoke_factory(context, data) if factory
-            invoke_constructor(context)
-          end
-
-          # @param [Object] object
-          # @param [AMA::Entity::Mapper::Context] context
-          def map(object, context = nil, &block)
-            return @mapper.call(object, context, &block) if @mapper
-            copy = instantiate(context, object)
-            @attributes.values.each do |attribute|
-              value = attribute.extract(object)
-              attribute.set(copy, yield(attribute, value))
-            end
-            copy
-          end
-
+          # Resolves single parameter type
+          #
+          # @param [AMA::Entity::Mapper::Type::Parameter] parameter
+          # @param [AMA::Entity::Mapper::Type] substitution
           def resolve_parameter(parameter, substitution)
+            unless parameter.is_a?(Parameter)
+              message = "Non-parameter type #{parameter} " \
+                'supplied for resolution'
+              mapping_error(message, nil)
+            end
             clone.tap do |clone|
               intermediate = attributes.map do |key, value|
                 [key, value.resolve_parameter(parameter, substitution)]
               end
               clone.attributes = Hash[intermediate]
+              clone.parameters = clone.parameters.reject do |_, p|
+                p == parameter
+              end
             end
+          end
+
+          def factory=(factory)
+            @factory = Wrappers.factory(self, factory)
+          end
+
+          def enumerator(object, context = nil)
+            @enumerator.call(object, context)
+          end
+
+          def enumerator=(enumerator_factory)
+            @enumerator = Wrappers.enumerator(self, enumerator_factory)
+          end
+
+          def acceptor(object, context = nil)
+            @acceptor.call(object, context)
+          end
+
+          def acceptor=(acceptor_factory)
+            @acceptor = Wrappers.acceptor(self, acceptor_factory)
           end
 
           def hash
@@ -158,21 +171,6 @@ module AMA
           end
 
           private
-
-          def invoke_factory(context = nil, data = nil)
-            factory.call(context, data) if factory
-          rescue StandardError => e
-            message = "Failed to instantiate type #{self} using factory"
-            mapping_error(message, parent: e, context: context)
-          end
-
-          def invoke_constructor(context = nil)
-            @type.new
-          rescue StandardError => e
-            message = "Failed to instantiate type #{self} from class, " \
-              'is it\'s #initialize() parameterless?'
-            mapping_error(message, parent: e, context: context)
-          end
 
           def validate_type!(type)
             return type if type.is_a?(Class) || type.is_a?(Module)

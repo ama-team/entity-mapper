@@ -37,10 +37,6 @@ module AMA
             {}
           end
 
-          def map(_)
-            compliance_error("Called #map() method on #{self}", nil)
-          end
-
           %i[instance? satisfied_by?].each do |method|
             define_method method do |_|
               false

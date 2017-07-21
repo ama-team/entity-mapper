@@ -28,10 +28,6 @@ module AMA
             self
           end
 
-          def map(object)
-            object
-          end
-
           def instance?(*)
             true
           end
