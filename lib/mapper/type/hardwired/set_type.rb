@@ -1,17 +1,22 @@
 # frozen_string_literal: true
 
+require 'set'
+
 require_relative '../concrete'
 require_relative '../../path/segment'
+require_relative '../../mixin/errors'
+require_relative 'pair_type'
+require_relative '../aux/pair'
 
 module AMA
   module Entity
     class Mapper
       class Type
         module Hardwired
-          # Default Enumerable handler
-          class EnumerableType < Concrete
+          # Predefined type for Set class
+          class SetType < Concrete
             def initialize
-              super(::Enumerable)
+              super(::Set)
               attribute!(:_value, parameter!(:T), virtual: true)
 
               define_factory
@@ -27,7 +32,7 @@ module AMA
             def define_factory
               self.factory = Object.new.tap do |factory|
                 factory.define_singleton_method(:create) do |*|
-                  []
+                  Set.new([])
                 end
               end
             end
@@ -40,7 +45,7 @@ module AMA
 
             def define_denormalizer
               self.denormalizer = lambda do |entity, *|
-                entity
+                Set.new(entity)
               end
             end
 
@@ -57,18 +62,18 @@ module AMA
 
             def define_acceptor
               self.acceptor = lambda do |entity, *|
-                Object.new.tap do |acceptor|
-                  acceptor.define_singleton_method(:accept) do |_, val, segment|
-                    entity[segment.name] = val
-                  end
+                acceptor = Object.new
+                acceptor.define_singleton_method(:accept) do |_, value, *|
+                  entity.add(value)
                 end
+                acceptor
               end
             end
 
             def define_extractor
               self.extractor = lambda do |object, type, context = nil, *|
-                unless object.is_a?(::Enumerable)
-                  message = "Expected enumerable, got #{object.class}"
+                unless object.is_a?(::Set)
+                  message = "Expected Set, got #{object.class}"
                   mapping_error(message, context: context)
                 end
                 ::Enumerator.new do |yielder|

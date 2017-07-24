@@ -12,6 +12,14 @@ module AMA
       class Type
         include Mixin::Errors
 
+        # :nocov:
+        def initialize
+          message = "#{self.class} is an abstract class " \
+            'and can\'t be isntantiated directly'
+          compliance_error(message, nil)
+        end
+        # :nocov:
+
         # @return [Hash{Symbol, AMA::Entity::Mapper::Type::Attribute}]
         def attributes
           {}
@@ -122,11 +130,13 @@ module AMA
         protected
 
         # :nocov:
+        # rubocop:disable Performance/Caller
         def abstract_method
-          message = "Abstract method #{__callee__} hasn't been implemented " \
+          message = "Abstract method #{caller[1]} hasn't been implemented " \
             "in class #{self.class}"
           raise message
         end
+        # rubocop:enable Performance/Caller
         # :nocov:
       end
     end

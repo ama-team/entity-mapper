@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# rubocop:disable Metrics/ClassLength
+
 require_relative '../type'
 require_relative '../mixin/errors'
 require_relative 'attribute'
@@ -127,12 +129,9 @@ module AMA
           #
           # @param [AMA::Entity::Mapper::Type::Parameter] parameter
           # @param [AMA::Entity::Mapper::Type] substitution
-          def resolve_parameter(parameter, substitution)
-            unless parameter.is_a?(Parameter)
-              message = "Non-parameter type #{parameter} " \
-                'supplied for resolution'
-              compliance_error(message, nil)
-            end
+          def resolve_parameter(parameter, substitution, context = nil)
+            parameter = normalize_parameter(parameter, context)
+            substitution = normalize_substitution(substitution, context)
             clone.tap do |clone|
               intermediate = attributes.map do |key, value|
                 [key, value.resolve_parameter(parameter, substitution)]
@@ -192,6 +191,26 @@ module AMA
             message = 'Expected concrete type to be instantiated with ' \
               "Class/Module instance, got #{type}"
             compliance_error(message, nil)
+          end
+
+          def normalize_parameter(parameter, context = nil)
+            if parameter.is_a?(Symbol) && parameters.key?(parameter)
+              return parameters[parameter]
+            end
+            return parameter if parameter.is_a?(Parameter)
+            message = "Non-parameter type #{parameter} " \
+              'supplied for resolution'
+            compliance_error(message, context: context)
+          end
+
+          def normalize_substitution(substitution, context)
+            return substitution if substitution.is_a?(Type)
+            if [Module, Class].any? { |type| substitution.is_a?(type) }
+              return Concrete.new(substitution)
+            end
+            message = "#{substitution.class} is passed as parameter " \
+              'substitution, Type / Class / Module expected'
+            compliance_error(message, context: context)
           end
         end
       end

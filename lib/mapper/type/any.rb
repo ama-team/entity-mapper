@@ -10,6 +10,8 @@ module AMA
         class Any < Type
           include Mixin::Errors
 
+          def initialize; end
+
           INSTANCE = new
 
           def parameter!(*)

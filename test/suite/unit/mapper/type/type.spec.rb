@@ -1,16 +1,22 @@
 # frozen_string_literal: true
 
-require_relative '../../../../lib/mapper/type'
-require_relative '../../../../lib/mapper/exception/compliance_error'
-require_relative '../../../../lib/mapper/exception/mapping_error'
+require_relative '../../../../../lib/mapper/type'
+require_relative '../../../../../lib/mapper/exception/compliance_error'
+require_relative '../../../../../lib/mapper/exception/mapping_error'
 
-klass = ::AMA::Entity::Mapper::Type
+inspected_class = ::AMA::Entity::Mapper::Type
 compliance_error_class = ::AMA::Entity::Mapper::Exception::ComplianceError
 mapping_error_class = ::AMA::Entity::Mapper::Exception::MappingError
 
-describe klass do
+describe inspected_class do
+  let(:klass) do
+    Class.new(inspected_class) do
+      def initialize; end
+    end
+  end
+
   let(:default) do
-    Class.new(klass) do
+    Class.new(inspected_class) do
       attr_accessor :attributes
       attr_accessor :parameters
 
@@ -64,6 +70,21 @@ describe klass do
 
     it 'should return false if #attributes output doesn\'t contain such attribute' do
       expect(dummy.attribute?(:id)).to be false
+    end
+  end
+
+  describe '#resolve' do
+    it 'should pass input to #resolve_parameter' do
+      parameters = {
+        X: nil,
+        Y: nil
+      }
+      parameters.each do |key, value|
+        allow(dummy).to(
+          receive(:resolve_parameter).with(key, value).and_return(dummy)
+        )
+      end
+      dummy.resolve(parameters)
     end
   end
 

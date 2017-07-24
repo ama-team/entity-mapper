@@ -46,6 +46,10 @@ module AMA
             !find(klass).nil?
           end
 
+          def [](klass)
+            @types[klass]
+          end
+
           private
 
           def inheritance_chain(klass)

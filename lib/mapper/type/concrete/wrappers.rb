@@ -13,13 +13,15 @@ module AMA
             class << self
               include Mixin::Errors
 
+              # rubocop:disable Metrics/MethodLength
               def factory(type, factory)
                 handle = factory.method(:create)
-                emitter = self
+                emitter = self.emitter
                 wrapper = lambda do |context = nil, data = nil|
                   begin
                     handle.call(context, data)
                   rescue StandardError => e
+                    emitter.raise_if_internal(e)
                     message = "Failed to instantiate type #{type} using factory"
                     if e.is_a?(ArgumentError)
                       message += '. Does provided factory conform to ' \
@@ -30,23 +32,27 @@ module AMA
                 end
                 install_method(factory, :create, wrapper)
               end
+              # rubocop:enable Metrics/MethodLength
 
               def enumerator(proc)
+                emitter = self.emitter
                 lambda do |object, type, context = nil|
                   begin
                     proc.call(object, type, context)
                   rescue ArgumentError => e
+                    emitter.raise_if_internal(e)
                     message = "Failed to create enumerator for type #{type}"
                     if e.is_a?(StandardError)
                       message += '. Does enumerator factory conform to ' \
                         'lambda(object, type, context = nil) interface?'
                     end
-                    mapping_error(message, context: context, parent: e)
+                    emitter.mapping_error(message, context: context, parent: e)
                   end
                 end
               end
 
               def acceptor(proc)
+                emitter = self.emitter
                 lambda do |object, type, context = nil|
                   begin
                     proc.call(object, type, context)
@@ -56,12 +62,13 @@ module AMA
                       message += '. Does acceptor factory conform to ' \
                         'lambda(object, type, context = nil) interface?'
                     end
-                    mapping_error(message, context: context, parent: e)
+                    emitter.mapping_error(message, context: context, parent: e)
                   end
                 end
               end
 
               def extractor(extractor_factory)
+                emitter = self.emitter
                 lambda do |object, type, context = nil|
                   begin
                     extractor_factory.call(object, type, context)
@@ -71,8 +78,17 @@ module AMA
                       message += '. Does extractor factory conform to ' \
                         'lambda(object, context = nil) interface?'
                     end
-                    mapping_error(message, context: context, parent: e)
+                    emitter.mapping_error(message, context: context, parent: e)
                   end
+                end
+              end
+
+              protected
+
+              def emitter
+                return @emitter if @emitter
+                @emitter = Object.new.tap do |object|
+                  object.singleton_class.include Mixin::Errors
                 end
               end
 

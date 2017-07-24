@@ -31,6 +31,7 @@ module AMA
             normalizer = @stack.find { |candidate| candidate.supports(value) }
             normalizer.normalize(value, context, target_type)
           rescue StandardError => e
+            raise_if_internal(e)
             message = "Error while normalizing #{value.class} " \
               "at #{context.path}: #{e.message}"
             mapping_error(message, context: context)

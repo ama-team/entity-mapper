@@ -8,6 +8,7 @@ require_relative '../../../../../../lib/mapper/type/concrete'
 klass = ::AMA::Entity::Mapper::Engine::Denormalizer::Entity
 registry_class = ::AMA::Entity::Mapper::Type::Registry
 type_class = ::AMA::Entity::Mapper::Type::Concrete
+mapping_error_class = ::AMA::Entity::Mapper::Exception::MappingError
 
 describe klass do
   factory = lambda do |name|
@@ -144,6 +145,13 @@ describe klass do
       expect(result.sensitive).to eq(4)
       expect(result.hidden).to eq(9)
       expect(result.virtual).to eq(16)
+    end
+
+    it 'should raise mapping error if anything but hash is provided in absence of custom denormalizer' do
+      proc = lambda do
+        denormalizer.denormalize(1, context, simple_entity_type)
+      end
+      expect(&proc).to raise_error(mapping_error_class)
     end
   end
 end

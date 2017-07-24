@@ -74,7 +74,9 @@ module AMA
           end
 
           def to_s
-            "Attribute #{owner.type}.#{name}"
+            message = "Attribute #{owner.type}.#{name}"
+            return message unless virtual
+            "#{message} (virtual)"
           end
 
           private

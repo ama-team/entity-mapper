@@ -5,6 +5,7 @@ require_relative '../../../../../../lib/mapper/type/concrete'
 require_relative '../../../../../../lib/mapper/exception/mapping_error'
 
 klass = ::AMA::Entity::Mapper::Engine::Denormalizer::Primitive
+mapping_error_class = ::AMA::Entity::Mapper::Exception::MappingError
 
 describe klass do
   let(:denormalizer) do
@@ -37,30 +38,46 @@ describe klass do
         expect(denormalizer.denormalize(value, context, type)).to eq(value)
       end
 
-      describe "#{value_class}:" do
+      describe "> #{value_class}" do
         methods.each do |method|
           it "should denormalize value to #{value_class} if it has :#{method} method" do
             subject = double(**{ method => value })
-            type = double(**{ type: value_class })
+            type = double(type: value_class)
             expect(denormalizer.denormalize(subject, context, type)).to eq(value)
           end
 
           it "should raise error if :#{method} method returns something other than #{value_class}" do
             subject = double(**{ method => nil })
-            type = double(**{ type: value_class })
-            expect do
+            type = double(type: value_class)
+            proc = lambda do
               denormalizer.denormalize(subject, context, type)
-            end .to raise_error(::AMA::Entity::Mapper::Exception::MappingError)
+            end
+            expect(&proc).to raise_error(mapping_error_class)
           end
 
           definition.fetch(:illegal_values, []).each do |illegal_value|
             it "should raise error if :#{method} method returns #{illegal_value}" do
               subject = double(**{ method => illegal_value })
               type = double(**{ type: value_class })
-              expect do
+              proc = lambda do
                 denormalizer.denormalize(subject, context, type)
-              end .to raise_error(::AMA::Entity::Mapper::Exception::MappingError)
+              end
+              expect(&proc).to raise_error(mapping_error_class)
             end
+          end
+        end
+
+        unless methods.empty?
+          it 'should raise mapping error if all supplementary methods require arguments' do
+            subject = double
+            methods.each do |method|
+              allow(subject).to receive(method).and_raise(ArgumentError)
+            end
+            type = double(type: value_class)
+            proc = lambda do
+              denormalizer.denormalize(subject, context, type)
+            end
+            expect(&proc).to raise_error(mapping_error_class)
           end
         end
       end

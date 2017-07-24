@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require_relative '../../../../lib/mapper/type/attribute'
-require_relative '../../../../lib/mapper/exception/compliance_error'
+require_relative '../../../../../lib/mapper/type/attribute'
+require_relative '../../../../../lib/mapper/exception/compliance_error'
 
 klass = ::AMA::Entity::Mapper::Type::Attribute
 compliance_error_class = ::AMA::Entity::Mapper::Exception::ComplianceError
@@ -107,6 +107,16 @@ describe klass do
         attribute.resolved!
       end
       expect(&proc).not_to raise_error
+    end
+  end
+
+  describe '#resolve_parameter' do
+    it 'should clone itself and pass the call to types' do
+      expect(type).to receive(:resolve_parameter).and_return(type).exactly(:once)
+      attribute = klass.new(type, :id, type)
+      clone = attribute.resolve_parameter(:T, nil)
+      expect(clone).to eq(attribute)
+      expect(clone).not_to equal(attribute)
     end
   end
 

@@ -20,7 +20,7 @@ module AMA
               super() do |yielder|
                 type.attributes.values.each do |attribute|
                   value = object_variable(object, attribute.name)
-                  segment = Path::Segment.new(attribute.name)
+                  segment = Path::Segment.attribute(attribute.name)
                   yielder << [attribute, value, segment]
                 end
               end

@@ -36,10 +36,6 @@ module AMA
               attribute!(:_tuple, type, virtual: true)
             end
 
-            def tuple_attribute
-              attributes[:_tuple]
-            end
-
             def define_acceptor
               acceptor_factory = lambda do |entity, *|
                 acceptor = Object.new
@@ -52,11 +48,11 @@ module AMA
             end
 
             def define_enumerator
-              attribute = tuple_attribute
-              self.enumerator = lambda do |entity, *|
+              self.enumerator = lambda do |entity, type, *|
                 ::Enumerator.new do |yielder|
                   entity.each do |key, value|
                     tuple = Aux::Pair.new(left: key, right: value)
+                    attribute = type.attributes[:_tuple]
                     yielder << [attribute, tuple, Path::Segment.index(key)]
                   end
                 end
@@ -64,8 +60,7 @@ module AMA
             end
 
             def define_extractor
-              attribute = tuple_attribute
-              self.extractor = lambda do |source, _type, context = nil, *|
+              self.extractor = lambda do |source, type, context = nil, *|
                 source = source.to_h if source.respond_to?(:to_h)
                 unless source.is_a?(Hash)
                   message = "Expected to receive hash, #{source.class} received"
@@ -74,6 +69,7 @@ module AMA
                 ::Enumerator.new do |yielder|
                   source.each do |key, value|
                     tuple = Aux::Pair.new(left: key, right: value)
+                    attribute = type.attributes[:_tuple]
                     yielder << [attribute, tuple, Path::Segment.index(key)]
                   end
                 end
@@ -83,7 +79,7 @@ module AMA
             def define_denormalizer
               self.denormalizer = lambda do |input, context, *|
                 input = input.to_h if input.respond_to?(:to_h)
-                return input if input.is_a?(Hash)
+                return input.clone if input.is_a?(Hash)
                 message = "Expected to receive hash, #{input.class} received"
                 mapping_error(message, context: context)
               end
@@ -91,7 +87,7 @@ module AMA
 
             def define_normalizer
               self.normalizer = lambda do |entity, *|
-                entity
+                entity.clone
               end
             end
 

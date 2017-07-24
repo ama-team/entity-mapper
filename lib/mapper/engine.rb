@@ -25,13 +25,18 @@ module AMA
 
         # @param [Object] source
         # @param [Array<AMA::Entity::Mapper::Type::Concrete>] types
-        # @param [Hash] context
-        def map(source, *types, **context)
-          context = create_context(context)
-          types.each do |type|
-            type.resolved!(context)
+        # @param [Hash] context_options
+        def map(source, *types, **context_options)
+          context = create_context(context_options)
+          types = normalize_types(types, context)
+          begin
+            recursive_map(source, types, context)
+          rescue StandardError => e
+            message = "Failed to map #{source.class} " \
+              "to any of provided types (#{types.map(&:to_s).join(', ')}). " \
+              "Last error: #{e.message}"
+            mapping_error(message, context: context)
           end
-          recursive_map(source, types, context)
         end
 
         private
@@ -58,13 +63,8 @@ module AMA
               suppressed.push(e)
             end
           end
-          if suppressed.empty?
-            message = 'Requested map operation with no target types'
-            compliance_error(message, context: context)
-          end
-          message = "Failed to map #{source.class} " \
-            "to any of provided types (#{types})"
-          mapping_error(message, parent: suppressed.last, context: context)
+          # types are guaranteed to be non-empty in #map
+          raise suppressed.last
         end
 
         # @param [Object] source
@@ -74,8 +74,8 @@ module AMA
           return source if type.satisfied_by?(source)
           normalized = @normalizer.normalize(source, context, type)
           result = @denormalizer.denormalize(normalized, type, context)
-          return result if type.satisfied_by?(result)
           type.instance!(result, context)
+          return result if type.satisfied_by?(result)
           result = map_attributes(result, type, context)
           return result if type.satisfied_by?(result)
           message = "Failed to map #{source.class} to type #{type}"
@@ -86,8 +86,9 @@ module AMA
         # @param [AMA::Entity::Mapper::Type] type
         # @param [AMA::Entity::Mapper::Engine::Context] context
         def map_attributes(entity, type, context)
+          instance = type.factory.create(context, entity)
           enumerator = type.enumerator(entity)
-          acceptor = type.acceptor(entity)
+          acceptor = type.acceptor(instance)
           enumerator.each do |attribute, value, segment = nil|
             unless attribute.satisfied_by?(value)
               segment = Path::Segment.attribute(attribute.name) unless segment
@@ -96,7 +97,34 @@ module AMA
             end
             acceptor.accept(attribute, value, segment)
           end
-          entity
+          instance
+        end
+
+        def normalize_types(types, context)
+          if types.empty?
+            compliance_error('Requested map operation with no target types')
+          end
+          types = types.map do |type|
+            normalize_type(type)
+          end
+          types.each do |type|
+            type.resolved!(context)
+          end
+        end
+
+        def normalize_type(type)
+          return type if type.is_a?(Type)
+          parameters = {}
+          type, parameters = type if type.is_a?(Array)
+          if [Module, Class].any? { |candidate| type.is_a?(candidate) }
+            type = @registry[type] || Type::Concrete.new(type)
+          end
+          unless type.is_a?(Type)
+            message = "Provided type in unknown format: #{type}, " \
+              'Type/Class/Module expected'
+            compliance_error(message)
+          end
+          type.resolve(parameters)
         end
       end
     end

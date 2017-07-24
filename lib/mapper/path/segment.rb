@@ -18,7 +18,7 @@ module AMA
           end
 
           def to_s
-            "#{prefix}#{name}#{suffix}"
+            "#{@prefix}#{@name}#{@suffix}"
           end
 
           def hash
