@@ -1,6 +1,8 @@
 # frozen_String_literal: true
 
 require_relative '../mixin/errors'
+require_relative 'concrete'
+require_relative 'parameter'
 
 module AMA
   module Entity
@@ -50,7 +52,37 @@ module AMA
             @types[klass]
           end
 
+          def resolve(definition)
+            if definition.is_a?(Module) || definition.is_a?(Class)
+              definition = [definition]
+            end
+            klass, parameters = definition
+            parameters ||= {}
+            type = @types[klass] || Concrete.new(klass)
+            parameters.each do |parameter, replacement|
+              validate_replacement!(replacement)
+              parameter = resolve_type_parameter(type, parameter)
+              type = type.resolve_parameter(parameter, replacement)
+            end
+            type
+          end
+
           private
+
+          def validate_replacement!(replacement)
+            return if replacement.is_a?(Type)
+            message = 'Invalid parameter replacement supplied, ' \
+              "expected Type, got #{replacement.class}"
+            compliance_error(message)
+          end
+
+          def resolve_type_parameter(type, parameter)
+            return parameter if parameter.is_a?(Parameter)
+            if parameter.is_a?(Symbol) && type.parameter?(parameter)
+              return type.parameters[parameter]
+            end
+            compliance_error("#{type} has no parameter #{parameter}")
+          end
 
           def inheritance_chain(klass)
             cursor = klass

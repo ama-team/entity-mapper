@@ -31,7 +31,7 @@ module AMA
             object.instance_variable_set("@#{name}", value)
           rescue StandardError => e
             message = "Failed to set attribute #{name} on #{object.class}"
-            mapping_error(message, e)
+            mapping_error(message, parent: e)
           end
 
           # @param [Object] object
@@ -47,6 +47,11 @@ module AMA
           def object_variable(object, name)
             name = "@#{name}" unless name[0] == '@'
             object.instance_variable_get(name)
+          end
+
+          def install_object_method(object, name, handler)
+            object.define_singleton_method(name, &handler)
+            object
           end
         end
       end

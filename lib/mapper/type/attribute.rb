@@ -25,6 +25,9 @@ module AMA
           # @!attribute sensitive
           #   @return [TrueClass, FalseClass]
           attr_accessor :sensitive
+          # @!attribute default
+          #   @return [Object]
+          attr_accessor :default
 
           def initialize(owner, name, *types, **options)
             @owner = validate_owner!(owner)

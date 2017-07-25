@@ -30,4 +30,5 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'rubocop', '~> 0.49'
   spec.add_development_dependency 'allure-rspec', '~> 0.8.0'
   spec.add_development_dependency 'coveralls', '~> 0.8.0'
+  spec.add_development_dependency 'github-pages', '>= 146'
 end

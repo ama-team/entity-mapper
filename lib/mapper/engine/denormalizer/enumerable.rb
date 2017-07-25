@@ -28,12 +28,12 @@ module AMA
               # factory should be used instead
               target_type.type.new(source)
             rescue ArgumentError => e
-              message = "Failed to instantiate #{target_type}: #{e.message}." \
+              message = "Failed to instantiate #{target_type}. " \
                 'Does it follow standard convention accepting enumerable as ' \
                 '#initialize() argument?'
-              mapping_error(message, nil)
+              mapping_error(message, parent: e)
             rescue StandardError => e
-              mapping_error("Failed to instantiate #{target_type}", e)
+              mapping_error("Failed to instantiate #{target_type}", parent: e)
             end
 
             private
@@ -44,10 +44,10 @@ module AMA
               message = "Failed to instantiate object of type #{type}: " \
                 "#{e.message}. Have you passed class with " \
                 'mandatory parameters in #initialize method?'
-              mapping_error(message, nil)
+              mapping_error(message)
             rescue StandardError => e
               message = "Failed to instantiate object of type #{type}"
-              mapping_error(message, e)
+              mapping_error(message, parent: e)
             end
           end
         end

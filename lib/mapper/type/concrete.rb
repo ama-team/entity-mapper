@@ -190,7 +190,7 @@ module AMA
             return type if type.is_a?(Class) || type.is_a?(Module)
             message = 'Expected concrete type to be instantiated with ' \
               "Class/Module instance, got #{type}"
-            compliance_error(message, nil)
+            compliance_error(message)
           end
 
           def normalize_parameter(parameter, context = nil)

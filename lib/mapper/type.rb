@@ -16,7 +16,7 @@ module AMA
         def initialize
           message = "#{self.class} is an abstract class " \
             'and can\'t be isntantiated directly'
-          compliance_error(message, nil)
+          compliance_error(message)
         end
         # :nocov:
 

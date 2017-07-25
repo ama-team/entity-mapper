@@ -12,9 +12,11 @@ module AMA
 
           protected
 
+          # :nocov:
           def abstract_method
             compliance_error('Abstract method called')
           end
+          # :nocov:
         end
       end
     end
