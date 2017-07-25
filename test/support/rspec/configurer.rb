@@ -40,7 +40,7 @@ module AMA
 
               def configure_coverage(test_type)
                 target_dir = metadata_path('coverage')
-                sources_pattern = ::File.join(root, 'lib', '**', '*.rb')
+                sources = sources_pattern
                 ::Coveralls.wear_merged! do
                   add_filter 'test'
                   coverage_dir target_dir
@@ -50,10 +50,18 @@ module AMA
                     ::SimpleCov::Formatter::HTMLFormatter,
                     ::Coveralls::SimpleCov::Formatter
                   ]
-                  track_files sources_pattern
+                  track_files sources
                 end
                 # requiring every source file explicitly so
                 # SimpleCov would report correct relevant line size
+                require_sources
+              end
+
+              def sources_pattern
+                ::File.join(root, 'lib', '**', '*.rb')
+              end
+
+              def require_sources
                 Dir.glob(sources_pattern).each do |file|
                   require(file)
                 end
