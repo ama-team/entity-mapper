@@ -62,6 +62,8 @@ end
 
 task lint: %i[lint:all]
 
+task validate: %i[lint test:with-report]
+
 task :default do
   sh 'bundle exec rake -AT'
 end
