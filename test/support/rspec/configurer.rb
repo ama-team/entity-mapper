@@ -52,6 +52,11 @@ module AMA
                   ]
                   track_files sources_pattern
                 end
+                # requiring every source file explicitly so
+                # SimpleCov would report correct relevant line size
+                Dir.glob(sources_pattern).each do |file|
+                  require(file)
+                end
               end
 
               def configure_allure(rspec_config, test_type)
