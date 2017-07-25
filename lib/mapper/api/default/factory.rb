@@ -17,12 +17,12 @@ module AMA
             # @param [AMA::Entity::Mapper::Type] type
             # @param [Object] _data
             # @param [AMA::Entity::Mapper::Context] context
-            def create(type, _data, context = nil)
+            def create(type, _data = nil, context = nil)
               type.type.new
             rescue StandardError => e
               message = "Failed to instantiate #{type} directly from class."
               if e.is_a?(ArgumentError)
-                message += ' Does it have parameterless constructor?'
+                message += ' Does it have parameterless #initialize() method?'
               end
               mapping_error(message, parent: e, context: context)
             end

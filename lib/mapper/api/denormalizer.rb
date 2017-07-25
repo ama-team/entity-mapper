@@ -11,6 +11,7 @@ module AMA
         # This interface depicts class denormalizer - processor, responsible
         # for populating entity from low-level primitives and context
         class Denormalizer < Interface
+          # :nocov:
           # This methods accepts blank entity, data and type and populates
           # entity.
           #
@@ -38,6 +39,7 @@ module AMA
           def denormalize(entity, data, type, context = nil, &block)
             abstract_method
           end
+          # :nocov:
         end
       end
     end

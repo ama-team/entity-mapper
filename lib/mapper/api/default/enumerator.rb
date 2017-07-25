@@ -22,7 +22,7 @@ module AMA
             def enumerate(entity, type, context = nil)
               context ||= Context.new
               ::Enumerator.new do |yielder|
-                type.attributes.each do |attribute|
+                type.attributes.values.each do |attribute|
                   value = object_variable(entity, attribute.name)
                   segment = Path::Segment.attribute(attribute.name)
                   yielder << [attribute, value, context.advance(segment)]

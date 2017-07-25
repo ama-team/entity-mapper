@@ -11,6 +11,7 @@ module AMA
         # This special interface exists as a way for Mapper to non-directly
         # fetch all possible entity attributes
         class Enumerator < Interface
+          # :nocov:
           # Enumerates entity attributes
           #
           # @param [Object] entity
@@ -19,6 +20,7 @@ module AMA
           def enumerate(entity, type, context = nil)
             abstract_method
           end
+          # :nocov:
         end
       end
     end

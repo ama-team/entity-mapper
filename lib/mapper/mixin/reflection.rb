@@ -10,11 +10,6 @@ module AMA
         module Reflection
           include Errors
 
-          # @deprecated
-          def populate_object(object, values)
-            set_object_attributes(object, values)
-          end
-
           def set_object_attributes(object, values)
             values.each do |attribute, value|
               set_object_attribute(object, attribute, value)

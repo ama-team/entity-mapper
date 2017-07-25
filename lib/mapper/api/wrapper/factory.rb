@@ -23,7 +23,7 @@ module AMA
             # @param [AMA::Entity::Mapper::Type] type
             # @param [Object] data
             # @param [AMA::Entity::Mapper::Context] context
-            def create(type, data, context = nil)
+            def create(type, data = nil, context = nil)
               context ||= Context.new
               @processor.create(type, data, context) do |t, d, c|
                 @fallback.create(t, d, c)

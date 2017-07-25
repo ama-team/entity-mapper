@@ -12,6 +12,7 @@ module AMA
         # tricks like virtual attribute handling or multi-value attribute
         # handling (like in hash or array)
         class Injector < Interface
+          # :nocov:
           # Injects passed attribute into entity.
           #
           # @param [Object] entity
@@ -22,6 +23,7 @@ module AMA
           def inject(entity, type, attribute, value, context = nil)
             abstract_method
           end
+          # :nocov:
         end
       end
     end

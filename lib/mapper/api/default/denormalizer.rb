@@ -21,12 +21,10 @@ module AMA
             # @param [AMA::Entity::Mapper::Type] type
             # @param [AMA::Entity::Mapper::Context] context
             def denormalize(entity, source, type, context = nil)
-              unless source.is_a?(Hash)
-                message = "Expected hash, #{source.class} provided " \
-                  "(while denormalizing #{type})"
-                mapping_error(message, context: context)
-              end
-              set_object_attributes(entity, source)
+              return set_object_attributes(entity, source) if source.is_a?(Hash)
+              message = "Expected hash, #{source.class} provided " \
+                "(while denormalizing #{type})"
+              mapping_error(message, context: context)
             end
           end
         end

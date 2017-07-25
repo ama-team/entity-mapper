@@ -11,6 +11,7 @@ module AMA
         # This interface depicts class normalizer - processor, responsible
         # for converting entity into low-level primitives
         class Normalizer < Interface
+          # :nocov:
           # This method takes in provided entity and it's specific type and
           # should return low-level representation of this entity (most
           # commonly, hash of attributes). This normalizer has an option to
@@ -38,6 +39,7 @@ module AMA
           def normalize(entity, type, context = nil, &block)
             abstract_method
           end
+          # :nocov:
         end
       end
     end
