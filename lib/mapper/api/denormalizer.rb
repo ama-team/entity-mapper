@@ -12,7 +12,8 @@ module AMA
         # for populating entity from low-level primitives and context
         class Denormalizer < Interface
           # :nocov:
-          # This methods accepts blank entity, data and type and populates
+          # This methods accepts input data and type and creates corresponding
+          # entity. If necessary, type's factory may be called to instantiate
           # entity.
           #
           # Method is provided with context and fallback block (with same
@@ -22,7 +23,7 @@ module AMA
           #
           # ```ruby
           # data = { id: data } if data.is_a?(String) || data.is_a?(Symbol)
-          # block.call(entity, data, type, context)
+          # yield(data, type, context)
           # entity.id = entity.id || context.path.current.name
           # entity
           # ```
@@ -30,13 +31,12 @@ module AMA
           # This method should not attempt to denormalize attributes, since that
           # would be taken care of by mapper itself.
           #
-          # @param [Object] entity
           # @param [Object] data
           # @param [AMA::Entity::Mapper::Type::Concrete] type
           # @param [AMA::Entity::Mapper::Context] context
           # @param [Proc] block
           # @return [Object]
-          def denormalize(entity, data, type, context = nil, &block)
+          def denormalize(data, type, context = nil, &block)
             abstract_method
           end
           # :nocov:

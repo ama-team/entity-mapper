@@ -12,7 +12,7 @@ describe klass do
   end
 
   let(:attribute) do
-    double(name: :id)
+    double(name: :id, virtual: false, sensitive: false)
   end
 
   let(:type) do

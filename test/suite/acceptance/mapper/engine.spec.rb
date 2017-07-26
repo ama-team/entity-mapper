@@ -15,6 +15,7 @@ type_class = ::AMA::Entity::Mapper::Type::Concrete
 registry_class = ::AMA::Entity::Mapper::Type::Registry
 compliance_error_class = ::AMA::Entity::Mapper::Exception::ComplianceError
 mapping_error_class = ::AMA::Entity::Mapper::Exception::MappingError
+any_type = ::AMA::Entity::Mapper::Type::Any::INSTANCE
 
 describe klass do
   let(:entity) do
@@ -22,12 +23,12 @@ describe klass do
       attr_accessor :id
       attr_accessor :number
       def self.to_s
-        'entity'
+        'Entity'
       end
     end
     type_class.new(entity_class).tap do |type|
-      type.attribute!(:id, Symbol)
-      type.attribute!(:number, Numeric)
+      type.attribute!(:id, registry[Symbol])
+      type.attribute!(:number, registry[Numeric])
     end
   end
 
@@ -35,16 +36,12 @@ describe klass do
     entity_class = Class.new do
       attr_accessor :value
       def self.to_s
-        'parametrized entity'
+        'ParametrizedEntity'
       end
     end
     type_class.new(entity_class).tap do |type|
       type.attribute!(:value, type.parameter!(:T))
     end
-  end
-
-  let(:any_type) do
-    ::AMA::Entity::Mapper::Type::Any::INSTANCE
   end
 
   let(:hash_type) do
@@ -60,11 +57,7 @@ describe klass do
   end
 
   let(:registry) do
-    registry_class.new.tap do |registry|
-      registry.register(hash_type)
-      registry.register(enumerable_type)
-      registry.register(set_type)
-      registry.register(entity)
+    registry_class.new.with_default_types.tap do |registry|
       registry.register(parametrized_entity)
     end
   end
@@ -75,21 +68,20 @@ describe klass do
 
   describe '#map' do
     describe '> pass-through' do
-      candidates = [
-        :symbol,
-        'String',
-        { x: 12 },
-        Class.new.new,
-        false,
-        true,
-        nil,
-        [:alpha, 'beta', 3],
-        Set.new([:whoa])
-      ]
+      candidates = {
+        :symbol => [Symbol],
+        'String' => [String],
+        { x: 12 } => [Hash, K: Symbol, V: Integer],
+        Class.new.new => [Class],
+        false => [FalseClass],
+        true => [TrueClass],
+        nil => [NilClass],
+        [:alpha, 'beta', 3] => [Enumerable, T: any_type],
+        Set.new([:whoa]) => [Set, T: Symbol]
+      }
       candidates.each do |candidate|
         it "should map #{candidate.inspect} to itself" do
-          type = type_class.new(candidate.class)
-          expect(engine.map(candidate, type)).to equal(candidate)
+          expect(engine.map(candidate, candidate.class)).to equal(candidate)
         end
       end
     end
@@ -97,7 +89,7 @@ describe klass do
     describe '> multi-type' do
       [true, false].each do |value|
         it "should map #{value} to [TrueClass, FalseClass]" do
-          types = [TrueClass, FalseClass].map { |type| type_class.new(type) }
+          types = [TrueClass, FalseClass].map { |type| registry[type] }
           expect(engine.map(value, *types)).to eq(value)
         end
       end
@@ -137,7 +129,7 @@ describe klass do
           'bill' => { id: :bill, number: 12 },
           'francis' => { id: :francis, number: 13 }
         }
-        type = hash_type.resolve(K: Symbol, V: entity)
+        type = hash_type.resolve(K: registry[Symbol], V: entity)
         result = engine.map(source, type)
         expect(result).to be_a(Hash)
         source.each do |key, value|
@@ -187,10 +179,10 @@ describe klass do
       end
 
       it 'should try next type in case of failure' do
-        source = { id: :bill }
+        source = { id: :bill, number: 12 }
         types = [
-          set_type.resolve(T: Integer),
-          enumerable_type.resolve(T: Integer),
+          set_type.resolve(T: registry[Integer]),
+          enumerable_type.resolve(T: registry[Integer]),
           entity
         ]
         result = engine.map(source, *types)
@@ -203,22 +195,6 @@ describe klass do
           engine.map([], entity)
         end
         expect(&proc).to raise_error(mapping_error_class)
-      end
-
-      it 'should accept class as type in raw form' do
-        proc = lambda do
-          engine.map('symbol', Symbol)
-        end
-        expect(&proc).not_to raise_error
-        expect(proc.call).to eq(:symbol)
-      end
-
-      it 'should accept parameters in raw form' do
-        proc = lambda do
-          engine.map(Set.new([1]), [Enumerable, T: Integer])
-        end
-        expect(&proc).not_to raise_error
-        expect(proc.call).to eq(Set.new([1]))
       end
     end
   end

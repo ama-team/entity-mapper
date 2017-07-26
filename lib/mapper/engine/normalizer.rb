@@ -2,10 +2,6 @@
 
 require_relative 'context'
 require_relative '../mixin/errors'
-require_relative 'normalizer/entity'
-require_relative 'normalizer/object'
-require_relative 'normalizer/primitive'
-require_relative 'normalizer/enumerable'
 
 module AMA
   module Entity
@@ -16,25 +12,14 @@ module AMA
         class Normalizer
           include Mixin::Errors
 
-          def initialize(registry)
-            @registry = registry
-            @stack = [
-              Primitive.new,
-              Enumerable.new,
-              Entity.new(registry),
-              Object.new
-            ]
-          end
-
-          def normalize(value, context = nil, target_type = nil)
+          def normalize(value, source_type, context = nil)
             context ||= Context.new
-            normalizer = @stack.find { |candidate| candidate.supports(value) }
-            normalizer.normalize(value, context, target_type)
+            normalizer = source_type.normalizer
+            normalizer.normalize(value, source_type, context)
           rescue StandardError => e
             raise_if_internal(e)
-            message = "Error while normalizing #{value.class} " \
-              "at #{context.path}: #{e.message}"
-            mapping_error(message, context: context)
+            message = "Error while normalizing #{value.class}"
+            mapping_error(message, context: context, parent: e)
           end
         end
       end

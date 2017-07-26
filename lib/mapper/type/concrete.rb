@@ -4,13 +4,19 @@
 
 require_relative '../type'
 require_relative '../mixin/errors'
+require_relative '../mixin/reflection'
 require_relative 'attribute'
 require_relative 'parameter'
-require_relative 'concrete/factory'
-require_relative 'concrete/enumerator'
-require_relative 'concrete/acceptor'
-require_relative 'concrete/extractor'
-require_relative 'concrete/wrappers'
+require_relative '../api/wrapper/normalizer'
+require_relative '../api/wrapper/denormalizer'
+require_relative '../api/wrapper/enumerator'
+require_relative '../api/wrapper/injector'
+require_relative '../api/wrapper/factory'
+require_relative '../api/default/normalizer'
+require_relative '../api/default/denormalizer'
+require_relative '../api/default/enumerator'
+require_relative '../api/default/injector'
+require_relative '../api/default/factory'
 
 module AMA
   module Entity
@@ -22,6 +28,7 @@ module AMA
         # generics).
         class Concrete < Type
           include Mixin::Errors
+          include Mixin::Reflection
 
           # @!attribute type
           #   @return [Class]
@@ -42,7 +49,7 @@ module AMA
           # Arguments: input, context, target type, fallback-block
           #
           # @!attribute normalizer
-          #   @return [Proc]
+          #   @return [AMA::Entity::Mapper::API::Normalizer]
           attr_accessor :normalizer
           # Denormalizer proc that can be used to convert basic data structure
           # into entity.
@@ -53,31 +60,25 @@ module AMA
           # Arguments: input, context, target type, fallback-block
           #
           # @!attribute denormalizer
-          #   @return [Proc]
+          #   @return [AMA::Entity::Mapper::API::Denormalizer]
           attr_accessor :denormalizer
           # @!attribute enumerator
-          #   @return [Proc]
-          attr_reader :enumerator
-          # @!attribute acceptor
-          #   @return [Proc]
-          attr_reader :acceptor
-          # @!attribute extractor
-          #   @return [Proc]
-          attr_reader :extractor
+          #   @return [AMA::Entity::Mapper::API::Enumerator]
+          attr_accessor :enumerator
+          # @!attribute [w] acceptor
+          #   @return [AMA::Entity::Mapper::API::Injector]
+          attr_accessor :injector
           # @!attribute factory
-          #   @return [Proc]
-          attr_reader :factory
+          #   @return [AMA::Entity::Mapper::API::Factory]
+          attr_accessor :factory
 
           def initialize(klass)
             @type = validate_type!(klass)
             @parameters = {}
             @attributes = {}
-            self.factory = Factory.new(self)
-            self.enumerator = lambda do |object, type, *|
-              Enumerator.new(type, object)
+            %i[factory normalizer denormalizer enumerator injector].each do |h|
+              send("#{h}=", API::Default.const_get(h.capitalize)::INSTANCE)
             end
-            self.acceptor = ->(object, type, *) { Acceptor.new(type, object) }
-            self.extractor = ->(object, type, *) { Extractor.new(type, object) }
           end
 
           # Tells if provided object is an instance of this type.
@@ -96,7 +97,7 @@ module AMA
           # @return [TrueClass, FalseClass]
           def satisfied_by?(object)
             return false unless instance?(object)
-            enumerator(object).all? do |attribute, value, *|
+            enumerator.enumerate(object, self).all? do |attribute, value, *|
               attribute.satisfied_by?(value)
             end
           end
@@ -137,38 +138,31 @@ module AMA
                 [key, value.resolve_parameter(parameter, substitution)]
               end
               clone.attributes = Hash[intermediate]
-              clone.parameters = clone.parameters.reject do |_, p|
-                p == parameter
+              intermediate = clone.parameters.map do |key, value|
+                [key, value == parameter ? substitution : value]
               end
+              clone.parameters = Hash[intermediate]
             end
           end
 
-          def factory=(factory)
-            @factory = Wrappers.factory(self, factory)
+          def factory_block(&block)
+            self.factory = method_object(:create, &block)
           end
 
-          def enumerator(object, context = nil)
-            @enumerator.call(object, self, context)
+          def normalizer_block(&block)
+            self.normalizer = method_object(:normalize, &block)
           end
 
-          def enumerator=(enumerator_factory)
-            @enumerator = Wrappers.enumerator(enumerator_factory)
+          def denormalizer_block(&block)
+            self.denormalizer = method_object(:denormalize, &block)
           end
 
-          def acceptor(object, context = nil)
-            @acceptor.call(object, self, context)
+          def enumerator_block(&block)
+            self.enumerator = method_object(:enumerate, &block)
           end
 
-          def acceptor=(acceptor_factory)
-            @acceptor = Wrappers.acceptor(acceptor_factory)
-          end
-
-          def extractor(object, context = nil)
-            @extractor.call(object, self, context)
-          end
-
-          def extractor=(extractor_factory)
-            @extractor = Wrappers.extractor(extractor_factory)
+          def injector_block(&block)
+            self.injector = method_object(:inject, &block)
           end
 
           def hash
@@ -181,7 +175,13 @@ module AMA
           end
 
           def to_s
-            "Concrete Type {#{@type}}"
+            representation = @type.to_s
+            return representation if parameters.empty?
+            params = parameters.map do |key, value|
+              value = value.is_a?(Parameter) ? '?' : value.to_s
+              "#{key}:#{value}"
+            end
+            "#{representation}<#{params.join(', ')}>"
           end
 
           private

@@ -16,12 +16,26 @@ module AMA
 
             INSTANCE = new
 
-            # @param [Object] entity
             # @param [Hash] source
             # @param [AMA::Entity::Mapper::Type] type
             # @param [AMA::Entity::Mapper::Context] context
-            def denormalize(entity, source, type, context = nil)
-              return set_object_attributes(entity, source) if source.is_a?(Hash)
+            def denormalize(source, type, context = nil)
+              validate_source!(source, type, context)
+              entity = type.factory.create(type, source, context)
+              type.attributes.values.each do |attribute|
+                next if attribute.virtual
+                [attribute.name.to_s, attribute.name].each do |name|
+                  next unless source.key?(name)
+                  set_object_attribute(entity, name, source[name])
+                end
+              end
+              entity
+            end
+
+            private
+
+            def validate_source!(source, type, context)
+              return if source.is_a?(Hash)
               message = "Expected hash, #{source.class} provided " \
                 "(while denormalizing #{type})"
               mapping_error(message, context: context)

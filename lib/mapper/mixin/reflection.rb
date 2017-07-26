@@ -48,6 +48,10 @@ module AMA
             object.define_singleton_method(name, &handler)
             object
           end
+
+          def method_object(method, &handler)
+            install_object_method(Object.new, method, handler)
+          end
         end
       end
     end

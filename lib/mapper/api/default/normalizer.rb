@@ -15,10 +15,13 @@ module AMA
             INSTANCE = new
 
             # @param [Object] entity
-            # @param [AMA::Entity::Mapper::Type] _type
+            # @param [AMA::Entity::Mapper::Type] type
             # @param [AMA::Entity::Mapper::Context] _context
-            def normalize(entity, _type, _context = nil)
-              object_variables(entity)
+            def normalize(entity, type, _context = nil)
+              type.attributes.values.each_with_object({}) do |attribute, data|
+                next if attribute.virtual || attribute.sensitive
+                data[attribute.name] = object_variable(entity, attribute.name)
+              end
             end
           end
         end

@@ -12,14 +12,14 @@ mapping_error_class = ::AMA::Entity::Mapper::Exception::MappingError
 
 describe klass do
   let(:type) do
-    klass.new
+    klass::INSTANCE
   end
 
   describe '#enumerator' do
     it 'should correctly enumerate provided hash' do
       source = { id: 12 }
       proc = lambda do |block|
-        type.enumerator(source).each(&block)
+        type.enumerator.enumerate(source, type).each(&block)
       end
       pair = pair_class.new(left: :id, right: 12)
       attribute = type.attributes[:_tuple]
@@ -27,32 +27,13 @@ describe klass do
     end
   end
 
-  describe '#extractor' do
-    it 'should not accept anything but hash' do
-      proc = lambda do
-        type.extractor(double)
-      end
-      expect(&proc).to raise_error(mapping_error_class)
-    end
-
-    it 'should correctly extract data from hash' do
-      source = { id: 12 }
-      proc = lambda do |block|
-        type.extractor(source).each(&block)
-      end
-      pair = pair_class.new(left: :id, right: 12)
-      attribute = type.attributes[:_tuple]
-      expect(&proc).to yield_with_args([attribute, pair, anything])
-    end
-  end
-
-  describe '#acceptor' do
+  describe '#injector' do
     it 'should provide correctly-behaving acceptor' do
       object = {}
       tuple = pair_class.new(left: :key, right: :value)
       expectation = { key: :value }
       segment = segment_class.index(:key)
-      type.acceptor(object).accept(type.attributes[:_tuple], tuple, segment)
+      type.injector.inject(object, type, type.attributes[:_tuple], tuple, segment)
       expect(object).to eq(expectation)
     end
   end
@@ -60,7 +41,7 @@ describe klass do
   describe '#denormalizer' do
     it 'should return denormalizer capable to denormalize hashes' do
       data = { x: 12 }
-      expect(type.denormalizer.call(data, nil)).to eq(data)
+      expect(type.denormalizer.denormalize(data, type)).to eq(data)
     end
 
     it 'should return denormalizer capable to denormalize :to_h result' do
@@ -69,21 +50,21 @@ describe klass do
       source.define_singleton_method(:to_h) do
         data
       end
-      expect(type.denormalizer.call(source, nil)).to eq(data)
+      expect(type.denormalizer.denormalize(source, type)).to eq(data)
     end
 
     it 'should return denormalizer intolerant to non-hash input' do
       proc = lambda do
-        type.denormalizer.call(double, nil)
+        type.denormalizer.denormalize(double, type)
       end
       expect(&proc).to raise_error(mapping_error_class)
     end
   end
 
-  describe 'normalizer' do
+  describe '#normalizer' do
     it 'should return pass-through normalizer' do
       data = { x: 12 }
-      expect(type.normalizer.call(data)).to eq(data)
+      expect(type.normalizer.normalize(data, type)).to eq(data)
     end
   end
 end

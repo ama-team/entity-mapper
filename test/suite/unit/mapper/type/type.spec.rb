@@ -107,8 +107,10 @@ describe inspected_class do
   end
 
   describe '#resolved!' do
-    it 'should raise compliance error if current type has any parameters' do
-      dummy.parameters = { value: double(owner: dummy, id: :value) }
+    it 'should raise compliance error if current type has any unresolved parameters' do
+      dummy.parameters = {
+        value: double(owner: dummy, id: :value, resolved?: false)
+      }
       proc = lambda do
         dummy.resolved!
       end

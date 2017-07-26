@@ -20,9 +20,9 @@ module AMA
             def create(type, _data = nil, context = nil)
               type.type.new
             rescue StandardError => e
-              message = "Failed to instantiate #{type} directly from class."
+              message = "Failed to instantiate #{type} directly from class"
               if e.is_a?(ArgumentError)
-                message += ' Does it have parameterless #initialize() method?'
+                message += '. Does it have parameterless #initialize() method?'
               end
               mapping_error(message, parent: e, context: context)
             end

@@ -12,11 +12,11 @@ describe klass do
   end
 
   let(:attribute) do
-    double(name: :id)
+    double(name: :id, virtual: false, sensitive: false)
   end
 
   let(:type) do
-    double(type: double)
+    double(type: double, attributes: { id: attribute })
   end
 
   let(:entity) do

@@ -16,6 +16,8 @@ module AMA
               attribute!(:left, parameter!(:L))
               attribute!(:right, parameter!(:R))
             end
+
+            INSTANCE = new
           end
         end
       end

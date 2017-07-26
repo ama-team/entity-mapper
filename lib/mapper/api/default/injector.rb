@@ -20,6 +20,7 @@ module AMA
             # @param [Object] value
             # @param [AMA::Entity::Mapper::Context] _context
             def inject(entity, _type, attribute, value, _context = nil)
+              return entity if attribute.virtual
               set_object_attribute(entity, attribute.name, value)
               entity
             end

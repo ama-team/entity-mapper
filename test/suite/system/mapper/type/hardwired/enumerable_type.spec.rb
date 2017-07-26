@@ -6,7 +6,6 @@ require_relative '../../../../../../lib/mapper/exception/mapping_error'
 
 klass = ::AMA::Entity::Mapper::Type::Hardwired::EnumerableType
 segment_class = ::AMA::Entity::Mapper::Path::Segment
-mapping_error_class = ::AMA::Entity::Mapper::Exception::MappingError
 
 describe klass do
   let(:type) do
@@ -16,14 +15,14 @@ describe klass do
   describe '#normalizer' do
     it 'should provide convert-to-array normalizer' do
       data = [1, 2, 3]
-      expect(type.normalizer.call(data)).to eq(data)
+      expect(type.normalizer.normalize(data, type)).to eq(data)
     end
   end
 
   describe '#denormalizer' do
     it 'should provide pass-through denormalizer' do
       data = [1, 2, 3]
-      expect(type.denormalizer.call(data)).to eq(data)
+      expect(type.denormalizer.denormalize([], data, type)).to eq(data)
     end
   end
 
@@ -32,7 +31,7 @@ describe klass do
       source = [1, 2, 3]
       attribute = type.attributes[:_value]
       proc = lambda do |consumer|
-        type.enumerator(source).each(&consumer)
+        type.enumerator.enumerate(source, type).each(&consumer)
       end
       expectations = source.each_with_index.map do |item, index|
         [attribute, item, segment_class.index(index)]
@@ -41,37 +40,17 @@ describe klass do
     end
   end
 
-  describe '#acceptor' do
-    it 'should provide default acceptor' do
+  describe '#injector' do
+    it 'should provide default injector' do
       target = []
       expectation = [1, 2, 3]
-      acceptor = type.acceptor(target)
       attribute = type.attributes[:_value]
       expectation.each_with_index.map do |value, index|
-        acceptor.accept(attribute, value, segment_class.index(index))
+        segment = segment_class.index(index)
+        context = double(path: double(current: segment))
+        type.injector.inject(target, type, attribute, value, context)
       end
       expect(target).to eq(expectation)
-    end
-  end
-
-  describe '#extractor' do
-    it 'should provide default extractor' do
-      source = [1, 2, 3]
-      attribute = type.attributes[:_value]
-      expectations = source.each_with_index.map do |value, index|
-        [attribute, value, segment_class.index(index)]
-      end
-      proc = lambda do |consumer|
-        type.extractor(source).each(&consumer)
-      end
-      expect(&proc).to yield_successive_args(*expectations)
-    end
-
-    it 'should provide extractor not accepting anything but enumerable' do
-      proc = lambda do
-        type.extractor(double)
-      end
-      expect(&proc).to raise_error(mapping_error_class)
     end
   end
 end

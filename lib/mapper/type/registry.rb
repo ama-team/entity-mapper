@@ -3,6 +3,11 @@
 require_relative '../mixin/errors'
 require_relative 'concrete'
 require_relative 'parameter'
+require_relative 'hardwired/enumerable_type'
+require_relative 'hardwired/hash_type'
+require_relative 'hardwired/pair_type'
+require_relative 'hardwired/set_type'
+require_relative 'hardwired/primitive_type'
 
 module AMA
   module Entity
@@ -65,6 +70,17 @@ module AMA
               type = type.resolve_parameter(parameter, replacement)
             end
             type
+          end
+
+          def with_default_types
+            register(Hardwired::EnumerableType::INSTANCE)
+            register(Hardwired::HashType::INSTANCE)
+            register(Hardwired::SetType::INSTANCE)
+            register(Hardwired::PairType::INSTANCE)
+            Hardwired::PrimitiveType::ALL.each do |type|
+              register(type)
+            end
+            self
           end
 
           private

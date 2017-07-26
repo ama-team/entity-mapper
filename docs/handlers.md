@@ -105,8 +105,7 @@ enumerator = Object.new.tap do |instance|
     ::Enumerator.new do |y|
       type.attributes.each do |attribute|
         segment = ::AMA::Entity::Mapper::Path::Segment.attribute(attribute.name)
-        next_context = context ? context.advance(segment) : nil
-        y << [attribute, entity.send(attribute.name), next_context]
+        y << [attribute, entity.send(attribute.name), segment]
       end
     end
   end

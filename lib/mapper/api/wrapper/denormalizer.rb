@@ -20,18 +20,17 @@ module AMA
               @fallback = Default::Denormalizer::INSTANCE
             end
 
-            # @param [Object] entity
             # @param [Hash] source
             # @param [AMA::Entity::Mapper::Type] type
             # @param [AMA::Entity::Mapper::Context] context
-            def denormalize(entity, source, type, context = nil)
+            def denormalize(source, type, context = nil)
               ctx = context || Context.new
-              @processor.denormalize(entity, source, type, ctx) do |e, s, t, c|
-                @fallback.denormalize(e, s, t, c)
+              @processor.denormalize(source, type, ctx) do |s, t, c|
+                @fallback.denormalize(s, t, c)
               end
             rescue StandardError => e
               raise_if_internal(e)
-              message = "Error while denormalizing #{entity.class} " \
+              message = "Error while denormalizing #{type} " \
                 "(type: #{type}) from #{source.class} using #{@processor}"
               if e.is_a?(ArgumentError)
                 message += "Does #{@processor}#denormalize have signature " \

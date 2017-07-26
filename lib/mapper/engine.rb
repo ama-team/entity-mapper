@@ -3,6 +3,7 @@
 require_relative 'path'
 require_relative 'mixin/errors'
 require_relative 'type/registry'
+require_relative 'type/concrete'
 require_relative 'engine/normalizer'
 require_relative 'engine/denormalizer'
 require_relative 'engine/context'
@@ -19,8 +20,8 @@ module AMA
 
         def initialize(registry = nil)
           @registry = registry || Type::Registry.new
-          @normalizer = Normalizer.new(@registry)
-          @denormalizer = Denormalizer.new(@registry)
+          @normalizer = Normalizer.new
+          @denormalizer = Denormalizer.new
         end
 
         # @param [Object] source
@@ -72,9 +73,7 @@ module AMA
         # @param [AMA::Entity::Mapper::Engine::Context] context
         def try_map(source, type, context)
           return source if type.satisfied_by?(source)
-          normalized = @normalizer.normalize(source, context, type)
-          result = @denormalizer.denormalize(normalized, type, context)
-          type.instance!(result, context)
+          result = reassemble(source, type, context)
           return result if type.satisfied_by?(result)
           result = map_attributes(result, type, context)
           return result if type.satisfied_by?(result)
@@ -82,20 +81,29 @@ module AMA
           mapping_error(message, context: context)
         end
 
+        def reassemble(source, type, context)
+          return source if type.instance?(source)
+          source_type = registry.find(source.class)
+          source_type ||= Type::Concrete.new(source.class)
+          normalized = @normalizer.normalize(source, source_type, context)
+          result = @denormalizer.denormalize(normalized, type, context)
+          type.instance!(result, context)
+          result
+        end
+
         # @param [Object] entity
         # @param [AMA::Entity::Mapper::Type] type
         # @param [AMA::Entity::Mapper::Engine::Context] context
         def map_attributes(entity, type, context)
-          instance = type.factory.create(context, entity)
-          enumerator = type.enumerator(entity)
-          acceptor = type.acceptor(instance)
+          instance = type.factory.create(type, entity, context)
+          enumerator = type.enumerator.enumerate(entity, type, context)
           enumerator.each do |attribute, value, segment = nil|
+            segment = Path::Segment.attribute(attribute.name) unless segment
+            next_context = context.advance(segment)
             unless attribute.satisfied_by?(value)
-              segment = Path::Segment.attribute(attribute.name) unless segment
-              next_context = context.advance(segment)
               value = recursive_map(value, attribute.types, next_context)
             end
-            acceptor.accept(attribute, value, segment)
+            type.injector.inject(instance, type, attribute, value, next_context)
           end
           instance
         end

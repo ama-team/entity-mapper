@@ -15,24 +15,45 @@ describe klass do
     Class.new do
       attr_accessor :id
       attr_accessor :number
+      attr_accessor :virtual
     end
   end
 
+  let(:type) do
+    attributes = {
+      id: double(name: :id, virtual: false),
+      number: double(name: :number, virtual: false),
+      virtual: double(name: :virtual, virtual: true)
+    }
+    double(
+      type: entity,
+      factory: double(create: entity.new),
+      attributes: attributes
+    )
+  end
+
   describe '#denormalize' do
-    it 'should raise error if anything but hash is passed in' do
+    it 'raises error if anything but hash is passed in' do
+      type = self.type
       proc = lambda do
-        denormalizer.denormalize(Object.new, double, double(type: Class.new))
+        denormalizer.denormalize(double, type)
       end
       expect(&proc).to raise_error(mapping_error_class)
     end
 
-    it 'should denormalize hash as standard attributes' do
+    it 'denormalizes hash as standard attributes' do
+      type = self.type
       values = { id: :josh, number: 12 }
-      type = double(type: entity)
-      result = denormalizer.denormalize(entity.new, values, type)
+      result = denormalizer.denormalize(values, type)
       expect(result).to be_a(entity)
       expect(result.id).to eq(values[:id])
       expect(result.number).to eq(values[:number])
+    end
+
+    it 'does not denormalize virtual attributes' do
+      values = { virtual: 12 }
+      result = denormalizer.denormalize(values, type)
+      expect(result.virtual).to be_nil
     end
   end
 end

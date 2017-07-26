@@ -95,4 +95,51 @@ describe klass do
       expect(&proc).to raise_error(compliance_error_class)
     end
   end
+
+  describe '#factory' do
+    it 'should provide default factory if none was set' do
+      type = klass.new(dummy_class)
+      factory = type.factory
+      expect(factory.create(type)).to be_a(dummy_class)
+    end
+  end
+
+  describe '#enumerator' do
+    it 'should provide default enumerator' do
+      type = klass.new(dummy_class)
+      type.attributes[:id] = double(name: :id, virtual: false)
+      proc = lambda do |handler|
+        type.enumerator.enumerate(dummy_class.new, type).each(&handler)
+      end
+      expect(&proc).to yield_with_args([type.attributes[:id], nil, anything])
+    end
+  end
+
+  describe '#injector' do
+    it 'should provide default injector' do
+      type = klass.new(dummy_class)
+      object = dummy_class.new
+      doubler = double(name: :id, virtual: false)
+      type.injector.inject(object, type, doubler, 12, doubler)
+      expect(object.instance_variable_get(:@id)).to eq(12)
+    end
+  end
+
+  describe '#normalizer' do
+    it 'provides default normalizer' do
+      object = dummy_class.new
+      object.id = :identifier
+      result = resolved.normalizer.normalize(object, resolved)
+      expect(result).to eq(id: object.id)
+    end
+  end
+
+  describe '#denormalizer' do
+    it 'provides default denormalizer' do
+      data = { id: :identifier }
+      result = resolved.denormalizer.denormalize(data, resolved)
+      expect(result).to be_a(dummy_class)
+      expect(result.id).to eq(data[:id])
+    end
+  end
 end
