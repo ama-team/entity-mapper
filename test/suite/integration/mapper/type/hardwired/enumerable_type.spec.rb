@@ -6,10 +6,21 @@ require_relative '../../../../../../lib/mapper/exception/mapping_error'
 
 klass = ::AMA::Entity::Mapper::Type::Hardwired::EnumerableType
 segment_class = ::AMA::Entity::Mapper::Path::Segment
+mapping_error_class = ::AMA::Entity::Mapper::Exception::MappingError
 
 describe klass do
   let(:type) do
     klass::INSTANCE
+  end
+
+  let(:context) do
+    double(path: double(current: nil))
+  end
+
+  describe '#factory' do
+    it 'provides array factory' do
+      expect(type.factory.create(type)).to eq([])
+    end
   end
 
   describe '#normalizer' do
@@ -22,7 +33,21 @@ describe klass do
   describe '#denormalizer' do
     it 'should provide pass-through denormalizer' do
       data = [1, 2, 3]
-      expect(type.denormalizer.denormalize([], data, type)).to eq(data)
+      expect(type.denormalizer.denormalize(data, type, context)).to eq(data)
+    end
+
+    it 'raises if Hash is provided' do
+      proc = lambda do
+        type.denormalizer.denormalize({}, type, context)
+      end
+      expect(&proc).to raise_error(mapping_error_class)
+    end
+
+    it 'raises if non-Enumerable type is provided' do
+      proc = lambda do
+        type.denormalizer.denormalize(double, type, context)
+      end
+      expect(&proc).to raise_error(mapping_error_class)
     end
   end
 

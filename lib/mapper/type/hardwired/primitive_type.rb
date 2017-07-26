@@ -14,9 +14,10 @@ module AMA
 
             def initialize(type, *methods, &denormalizer)
               super(type)
+              this = self
 
               factory_block do |*|
-                type.compliance_error("#{self} factory should never be called")
+                this.compliance_error("#{self} factory should never be called")
               end
               normalizer_block do |entity, *|
                 entity

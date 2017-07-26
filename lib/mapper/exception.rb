@@ -5,8 +5,6 @@ module AMA
     class Mapper
       # Marker module to allow easy library exception processing
       module Exception
-        class << self
-        end
       end
     end
   end

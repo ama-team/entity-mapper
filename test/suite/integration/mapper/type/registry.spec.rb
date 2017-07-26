@@ -75,21 +75,21 @@ describe klass do
 
   describe '#for' do
     it 'should return all types in ascending order for bottom class' do
-      types = registry.for(bottom)
+      types = registry.applicable(bottom)
       classes = types.map(&:type)
       expectation = [bottom, middle, top, bottom_module, middle_module]
       expect(classes).to eq(expectation)
     end
 
     it 'should return top and middle types for middle class' do
-      types = registry.for(middle)
+      types = registry.applicable(middle)
       classes = types.map(&:type)
       expectation = [middle, top, middle_module]
       expect(classes).to eq(expectation)
     end
 
     it 'should return top type only for top class' do
-      expect(registry.for(top).map(&:type)).to eq([top])
+      expect(registry.applicable(top).map(&:type)).to eq([top])
     end
   end
 

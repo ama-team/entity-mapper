@@ -12,6 +12,10 @@ describe klass do
       attr_accessor :id
       attr_accessor :value
       attr_accessor :_metadata
+
+      def self.to_s
+        'Dummy'
+      end
     end
   end
 
@@ -140,6 +144,39 @@ describe klass do
       result = resolved.denormalizer.denormalize(data, resolved)
       expect(result).to be_a(dummy_class)
       expect(result.id).to eq(data[:id])
+    end
+  end
+
+  describe '#to_s' do
+    it 'displays only class if there are no parameters' do
+      expect(klass.new(dummy_class).to_s).to eq(dummy_class.to_s)
+    end
+
+    it 'displays parameters in angle brackets' do
+      type = klass.new(dummy_class)
+      type.parameter!(:A)
+      type.parameters[:B] = klass.new(dummy_class)
+      dummy = dummy_class.to_s
+      expect(type.to_s).to eq("#{dummy}<A:?, B:#{dummy}>")
+    end
+  end
+
+  describe '#satisfied_by?' do
+    it 'checks if input passes #instance? check first' do
+      type = klass.new(dummy_class)
+      input = double(is_a?: false)
+      expect(type).to receive(:instance?).and_call_original
+      expect(type).not_to receive(:enumerator)
+      expect(type.satisfied_by?(input)).to be false
+    end
+
+    it 'passes call to all attributes using enumerator call' do
+      type = klass.new(dummy_class)
+      input = double(is_a?: true)
+      attribute = type.attribute!(:value, dummy_class)
+      expect(type).to receive(:instance?).and_call_original
+      expect(attribute).to receive(:satisfied_by?).and_return(false)
+      expect(type.satisfied_by?(input)).to be false
     end
   end
 end

@@ -29,16 +29,18 @@ module AMA
           end
 
           # @param [Class] klass
-          def registered?(klass)
+          def key?(klass)
             @types.key?(klass)
           end
 
-          def for(klass)
+          alias registered? key?
+
+          def applicable(klass)
             find_class_types(klass) | find_module_types(klass)
           end
 
           def find(klass)
-            candidates = self.for(klass)
+            candidates = applicable(klass)
             candidates.empty? ? nil : candidates.first
           end
 
@@ -85,11 +87,11 @@ module AMA
 
           private
 
-          def validate_replacement!(replacement)
+          def validate_replacement!(replacement, context = nil)
             return if replacement.is_a?(Type)
-            message = 'Invalid parameter replacement supplied, ' \
-              "expected Type, got #{replacement.class}"
-            compliance_error(message)
+            message = 'Invalid parameter replacement supplied, expected Type ' \
+              "instance, got #{replacement} (#{replacement.class})"
+            compliance_error(message, context: context)
           end
 
           def resolve_type_parameter(type, parameter)

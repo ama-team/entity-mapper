@@ -7,13 +7,31 @@ module AMA
   module Entity
     class Mapper
       class Engine
-        # Denormalization entrypoint, a class accepting wildcard denormalization
-        # requests (opposed to specific child classes).
+        # Thin denormalization master. Delegates processing to type
+        # denormalizer and adds security wrap.
         class Denormalizer
           include ::AMA::Entity::Mapper::Mixin::Errors
 
-          def denormalize(source, target_type, context = nil)
-            context ||= Context.new
+          # @param [Object] source
+          # @param [AMA::Entity::Mapper::Type] target_type
+          # @param [AMA::Entity::Mapper::Context] context
+          # @return [Object] Object of target type
+          def denormalize(source, target_type, context)
+            result = denormalize_internal(source, target_type, context)
+            return result if target_type.instance?(result)
+            message = "Denormalizer for type #{target_type} has returned " \
+              "something that is not an instance of #{target_type}: " \
+              "#{result} (#{result.class})"
+            compliance_error(message, context: context)
+          end
+
+          private
+
+          # @param [Object] source
+          # @param [AMA::Entity::Mapper::Type] target_type
+          # @param [AMA::Entity::Mapper::Context] context
+          # @return [Object] Object of target type
+          def denormalize_internal(source, target_type, context)
             denormalizer = target_type.denormalizer
             denormalizer.denormalize(source, target_type, context)
           rescue StandardError => e

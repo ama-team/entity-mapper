@@ -39,7 +39,7 @@ module AMA
             end
 
             def define_denormalizer
-              denormalizer_block do |_, data, type, context = nil, *|
+              denormalizer_block do |data, type, context = nil, *|
                 if data.is_a?(Hash) || !data.is_a?(Enumerable)
                   message = "Can't denormalize Enumerable from #{data.class}"
                   type.mapping_error(message, context: context)
