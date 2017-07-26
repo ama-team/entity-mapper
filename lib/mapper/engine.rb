@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
 require_relative 'path'
+require_relative 'context'
 require_relative 'mixin/errors'
 require_relative 'type/registry'
 require_relative 'type/concrete'
 require_relative 'engine/normalizer'
 require_relative 'engine/denormalizer'
-require_relative 'engine/context'
 
 module AMA
   module Entity
@@ -49,7 +49,7 @@ module AMA
             denormalizer: @denormalizer,
             path: Path.new
           )
-          Context.new(**options)
+          Mapper::Context.new(**options)
         end
 
         # @param [Object] source

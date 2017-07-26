@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require_relative 'context'
 require_relative '../mixin/errors'
+require_relative '../context'
 
 module AMA
   module Entity
