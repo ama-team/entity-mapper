@@ -43,6 +43,10 @@ module AMA
           end
         end
 
+        def resolve(type)
+          @resolver.resolve(type)
+        end
+
         private
 
         # @return [AMA::Entity::Mapper::Engine::Context] context

@@ -10,9 +10,9 @@ module AMA
       module DSL
         class << self
           def included(klass)
-            Mapper.types.register(Type::Concrete.new(klass))
             klass.class_eval do
               include ClassMethods
+              self.mapper = Mapper.handler
             end
           end
         end

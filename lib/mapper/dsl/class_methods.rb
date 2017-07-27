@@ -9,9 +9,17 @@ module AMA
         # Module providing DSL methods for entity class
         module ClassMethods
           include Mixin::Reflection
+
+          attr_reader :mapper
+
+          def mapper=(mapper)
+            @mapper = mapper
+            mapper.register(self)
+          end
+
           # @return [AMA::Entity::Mapper::Type::Concrete]
           def bound_type
-            Mapper.types[self]
+            @mapper.types[self]
           end
 
           # @param [String, Symbol] name
@@ -20,7 +28,7 @@ module AMA
           # @param [Hash] options Attribute options: :virtual, :sensitive
           # @return [AMA::Entity::Mapper::Type::Attribute]
           def attribute(name, *types, **options)
-            types = types.map { |type| Mapper.types.resolve(type) }
+            types = types.map { |type| @mapper.resolve(type) }
             bound_type.attribute!(name, *types, **options)
           end
 
@@ -30,47 +38,14 @@ module AMA
             bound_type.parameter!(id)
           end
 
-          def enumerator=(enumerator)
-            bound_type.enumerator = enumerator
-          end
+          %i[factory enumerator injector normalizer denormalizer].each do |m|
+            define_method m do |handler|
+              bound_type.send(m, handler)
+            end
 
-          def enumerator_block(&block)
-            enumerator = install_object_method(Object.new, :enumerate, block)
-            self.enumerator = enumerator
-          end
-
-          def injector=(injector)
-            bound_type.injector = injector
-          end
-
-          def injector_block(&block)
-            self.injector = install_object_method(Object.new, :inject, block)
-          end
-
-          def factory=(factory)
-            bound_type.factory = factory
-          end
-
-          def factory_block(&block)
-            self.factory = install_object_method(Object.new, :create, block)
-          end
-
-          def normalizer=(normalizer)
-            bound_type.normalizer = normalizer
-          end
-
-          def normalizer_block(&block)
-            n8r = install_object_method(Object.new, :normalize, block)
-            self.normalizer = n8r
-          end
-
-          def denormalizer=(denormalizer)
-            bound_type.denormalizer = denormalizer
-          end
-
-          def denormalizer_block(&block)
-            d10r = install_object_method(Object.new, :denormalize, block)
-            self.denormalizer = d10r
+            define_method "#{m}_block" do |&block|
+              bound_type.send(m, &block)
+            end
           end
         end
       end

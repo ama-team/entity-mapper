@@ -45,6 +45,7 @@ module AMA
           end
 
           def install_object_method(object, name, handler)
+            compliance_error('Handler not provided') unless handler
             object.define_singleton_method(name, &handler)
             object
           end
