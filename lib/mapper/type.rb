@@ -79,9 +79,6 @@ module AMA
         # @param [AMA::Entity::Mapper::Context] context
         def resolved!(context = nil)
           context ||= Context.new
-          unless parameters.values.reject(&:resolved?).empty?
-            compliance_error("Type #{self} is not resolved", context: context)
-          end
           attributes.values.each do |attribute|
             attribute.resolved!(context)
           end

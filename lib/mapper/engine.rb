@@ -4,6 +4,7 @@ require_relative 'path'
 require_relative 'context'
 require_relative 'mixin/errors'
 require_relative 'type/registry'
+require_relative 'type/resolver'
 require_relative 'type/concrete'
 require_relative 'engine/normalizer'
 require_relative 'engine/denormalizer'
@@ -17,9 +18,11 @@ module AMA
         include Mixin::Errors
 
         attr_reader :registry
+        attr_reader :resolver
 
         def initialize(registry = nil)
           @registry = registry || Type::Registry.new
+          @resolver = Type::Resolver.new(@registry)
           @normalizer = Normalizer.new
           @denormalizer = Denormalizer.new
         end
@@ -113,26 +116,11 @@ module AMA
             compliance_error('Requested map operation with no target types')
           end
           types = types.map do |type|
-            normalize_type(type)
+            @resolver.resolve(type)
           end
           types.each do |type|
             type.resolved!(context)
           end
-        end
-
-        def normalize_type(type)
-          return type if type.is_a?(Type)
-          parameters = {}
-          type, parameters = type if type.is_a?(Array)
-          if [Module, Class].any? { |candidate| type.is_a?(candidate) }
-            type = @registry[type] || Type::Concrete.new(type)
-          end
-          unless type.is_a?(Type)
-            message = "Provided type in unknown format: #{type}, " \
-              'Type/Class/Module expected'
-            compliance_error(message)
-          end
-          type.resolve(parameters)
         end
       end
     end

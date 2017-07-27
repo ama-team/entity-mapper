@@ -1,11 +1,9 @@
 # frozen_string_literal: true
 
 require_relative '../../../../../lib/mapper/type'
-require_relative '../../../../../lib/mapper/exception/compliance_error'
 require_relative '../../../../../lib/mapper/exception/mapping_error'
 
 inspected_class = ::AMA::Entity::Mapper::Type
-compliance_error_class = ::AMA::Entity::Mapper::Exception::ComplianceError
 mapping_error_class = ::AMA::Entity::Mapper::Exception::MappingError
 
 describe inspected_class do
@@ -107,21 +105,21 @@ describe inspected_class do
   end
 
   describe '#resolved!' do
-    it 'should raise compliance error if current type has any unresolved parameters' do
+    it 'checks attributes to determine if it is resolved' do
+      attribute = double(resolved!: nil)
+      expect(attribute).to receive(:resolved!).exactly(:once)
+      dummy.attributes = { id: attribute }
+      dummy.resolved!
+    end
+
+    it 'relies on attributes only' do
       dummy.parameters = {
         value: double(owner: dummy, id: :value, resolved?: false)
       }
       proc = lambda do
         dummy.resolved!
       end
-      expect(&proc).to raise_error(compliance_error_class)
-    end
-
-    it 'should pass call to attributes if current type has no parameters' do
-      attribute = double(resolved!: nil)
-      expect(attribute).to receive(:resolved!).exactly(:once)
-      dummy.attributes = { id: attribute }
-      dummy.resolved!
+      expect(&proc).not_to raise_error
     end
   end
 

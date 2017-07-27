@@ -119,20 +119,21 @@ module AMA
           # Creates new type parameter
           #
           # @param [Symbol] id
-          # @return [AMA::Entity::Mapper::Type::Parameter]
+          # @return [Parameter]
           def parameter!(id)
             id = id.to_sym
             return parameters[id] if parameters.key?(id)
             parameters[id] = Parameter.new(self, id)
           end
 
-          # Resolves single parameter type
+          # Resolves single parameter type. Substitution may be either another
+          # parameter, concrete type or array of concrete types.
           #
-          # @param [AMA::Entity::Mapper::Type::Parameter] parameter
-          # @param [AMA::Entity::Mapper::Type] substitution
-          def resolve_parameter(parameter, substitution, context = nil)
-            parameter = normalize_parameter(parameter, context)
-            substitution = normalize_substitution(substitution, context)
+          # @param [Parameter] parameter
+          # @param [Parameter, Array<Concrete>] substitution
+          def resolve_parameter(parameter, substitution)
+            parameter = validate_parameter!(parameter)
+            substitution = validate_substitution!(substitution)
             clone.tap do |clone|
               intermediate = attributes.map do |key, value|
                 [key, value.resolve_parameter(parameter, substitution)]
@@ -166,18 +167,21 @@ module AMA
           end
 
           def hash
-            @type.hash
+            @type.hash ^ @attributes.hash
           end
 
           def eql?(other)
             return false unless other.is_a?(self.class)
-            @type == other.type
+            @type == other.type && @attributes == other.attributes
           end
 
           def to_s
             representation = @type.to_s
             return representation if parameters.empty?
             params = parameters.map do |key, value|
+              if value.is_a?(Enumerable)
+                value = "[#{value.map(&:to_s).join(', ')}]"
+              end
               value = value.is_a?(Parameter) ? '?' : value.to_s
               "#{key}:#{value}"
             end
@@ -193,24 +197,34 @@ module AMA
             compliance_error(message)
           end
 
-          def normalize_parameter(parameter, context = nil)
-            if parameter.is_a?(Symbol) && parameters.key?(parameter)
-              return parameters[parameter]
-            end
+          def validate_parameter!(parameter)
             return parameter if parameter.is_a?(Parameter)
             message = "Non-parameter type #{parameter} " \
               'supplied for resolution'
-            compliance_error(message, context: context)
+            compliance_error(message)
           end
 
-          def normalize_substitution(substitution, context)
-            return substitution if substitution.is_a?(Type)
-            if [Module, Class].any? { |type| substitution.is_a?(type) }
-              return Concrete.new(substitution)
+          def validate_substitution!(substitution)
+            return substitution if substitution.is_a?(Parameter)
+            substitution = [substitution] if substitution.is_a?(self.class)
+            if substitution.is_a?(Enumerable)
+              return validate_substitutions!(substitution)
             end
-            message = "#{substitution.class} is passed as parameter " \
-              'substitution, Type / Class / Module expected'
-            compliance_error(message, context: context)
+            message = 'Provided substitution is neither another Parameter ' \
+              'or Array of concrete Types: ' \
+              "#{substitution} (#{substitution.class})"
+            compliance_error(message)
+          end
+
+          def validate_substitutions!(substitutions)
+            if substitutions.empty?
+              compliance_error('Empty list of substitutions passed')
+            end
+            invalid = substitutions.reject do |substitution|
+              substitution.is_a?(Concrete)
+            end
+            return substitutions if invalid.empty?
+            compliance_error("Invalid substitutions supplied: #{invalid}")
           end
         end
       end

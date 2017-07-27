@@ -6,7 +6,7 @@ require_relative '../../../../../lib/mapper/exception/compliance_error'
 
 klass = ::AMA::Entity::Mapper::Type::Registry
 type_klass = ::AMA::Entity::Mapper::Type::Concrete
-error_klass = ::AMA::Entity::Mapper::Exception::ComplianceError
+compliance_error_klass = ::AMA::Entity::Mapper::Exception::ComplianceError
 
 describe klass do
   let(:top) do
@@ -65,31 +65,47 @@ describe klass do
     Class.new(bottom)
   end
 
+  let(:parametrized_a) do
+    type_klass.new(Class.new).tap do |type|
+      type.attribute!(:value, type.parameter!(:T))
+    end
+  end
+
+  let(:parametrized_b) do
+    type_klass.new(Class.new).tap do |type|
+      type.attribute!(:value, type.parameter!(:T))
+    end
+  end
+
   let(:registry) do
     klass.new.tap do |registry|
       %i[top middle_module middle bottom_module bottom sidecar].each do |type|
         registry.register(type_klass.new(send(type)))
       end
+      %i[a b].each do |suffix|
+        type = "parametrized_#{suffix}"
+        registry.register(send(type))
+      end
     end
   end
 
-  describe '#for' do
-    it 'should return all types in ascending order for bottom class' do
-      types = registry.applicable(bottom)
+  describe '#select' do
+    it 'returns all types in ascending order for bottom class' do
+      types = registry.select(bottom)
       classes = types.map(&:type)
-      expectation = [bottom, middle, top, bottom_module, middle_module]
+      expectation = [bottom, bottom_module, middle, middle_module, top]
       expect(classes).to eq(expectation)
     end
 
-    it 'should return top and middle types for middle class' do
-      types = registry.applicable(middle)
+    it 'returns top and middle types for middle class' do
+      types = registry.select(middle)
       classes = types.map(&:type)
-      expectation = [middle, top, middle_module]
+      expectation = [middle, middle_module, top]
       expect(classes).to eq(expectation)
     end
 
-    it 'should return top type only for top class' do
-      expect(registry.applicable(top).map(&:type)).to eq([top])
+    it 'returns top type only for top class' do
+      expect(registry.select(top).map(&:type)).to eq([top])
     end
   end
 
@@ -112,8 +128,11 @@ describe klass do
       expect(result.type).to eq(bottom)
     end
 
-    it 'should throw on unregistered type' do
-      expect { registry.find!(Class.new) }.to raise_error(error_klass)
+    it 'raises on unregistered type' do
+      proc = lambda do
+        registry.find!(Class.new)
+      end
+      expect(&proc).to raise_error(compliance_error_klass)
     end
   end
 

@@ -23,6 +23,29 @@ module AMA
             @types = {}
           end
 
+          # @return [AMA::Entity::Mapper::Type::Registry]
+          def with_default_types
+            register(Hardwired::EnumerableType::INSTANCE)
+            register(Hardwired::HashType::INSTANCE)
+            register(Hardwired::SetType::INSTANCE)
+            register(Hardwired::PairType::INSTANCE)
+            Hardwired::PrimitiveType::ALL.each do |type|
+              register(type)
+            end
+            self
+          end
+
+          # @param [Class, Module] klass
+          def [](klass)
+            @types[klass]
+          end
+
+          # @param [AMA::Entity::Mapper::Type] type
+          # @param [Class, Module] klass
+          def []=(klass, type)
+            @types[klass] = type
+          end
+
           # @param [AMA::Entity::Mapper::Type::Concrete] type
           def register(type)
             @types[type.type] = type
@@ -35,15 +58,24 @@ module AMA
 
           alias registered? key?
 
-          def applicable(klass)
-            find_class_types(klass) | find_module_types(klass)
+          # @param [Class, Module] klass
+          # @return [Array<AMA::Entity::Mapper::Type>]
+          def select(klass)
+            types = class_hierarchy(klass).map do |entry|
+              @types[entry]
+            end
+            types.reject(&:nil?)
           end
 
+          # @param [Class, Module] klass
+          # @return [AMA::Entity::Mapper::Type, NilClass]
           def find(klass)
-            candidates = applicable(klass)
+            candidates = select(klass)
             candidates.empty? ? nil : candidates.first
           end
 
+          # @param [Class, Module] klass
+          # @return [AMA::Entity::Mapper::Type]
           def find!(klass)
             candidate = find(klass)
             return candidate if candidate
@@ -51,83 +83,33 @@ module AMA
             compliance_error(message)
           end
 
+          # @param [Class, Module] klass
+          # @return [TrueClass, FalseClass]
           def include?(klass)
-            !find(klass).nil?
-          end
-
-          def [](klass)
-            @types[klass]
-          end
-
-          def resolve(definition)
-            if definition.is_a?(Module) || definition.is_a?(Class)
-              definition = [definition]
-            end
-            klass, parameters = definition
-            parameters ||= {}
-            type = @types[klass] || Concrete.new(klass)
-            parameters.each do |parameter, replacement|
-              validate_replacement!(replacement)
-              parameter = resolve_type_parameter(type, parameter)
-              type = type.resolve_parameter(parameter, replacement)
-            end
-            type
-          end
-
-          def with_default_types
-            register(Hardwired::EnumerableType::INSTANCE)
-            register(Hardwired::HashType::INSTANCE)
-            register(Hardwired::SetType::INSTANCE)
-            register(Hardwired::PairType::INSTANCE)
-            Hardwired::PrimitiveType::ALL.each do |type|
-              register(type)
-            end
-            self
+            !select(klass).empty?
           end
 
           private
 
-          def validate_replacement!(replacement, context = nil)
-            return if replacement.is_a?(Type)
-            message = 'Invalid parameter replacement supplied, expected Type ' \
-              "instance, got #{replacement} (#{replacement.class})"
-            compliance_error(message, context: context)
-          end
-
-          def resolve_type_parameter(type, parameter)
-            return parameter if parameter.is_a?(Parameter)
-            if parameter.is_a?(Symbol) && type.parameter?(parameter)
-              return type.parameters[parameter]
-            end
-            compliance_error("#{type} has no parameter #{parameter}")
-          end
-
-          def inheritance_chain(klass)
-            cursor = klass
+          # @param [Class, Module] klass
+          def class_hierarchy(klass)
+            ptr = klass
             chain = []
             loop do
-              chain.push(cursor)
-              cursor = cursor.superclass
-              break if cursor.nil?
+              chain.push(*class_with_modules(ptr))
+              break if !ptr.respond_to?(:superclass) || ptr.superclass.nil?
+              ptr = ptr.superclass
             end
             chain
           end
 
-          def find_class_types(klass)
-            inheritance_chain(klass).each_with_object([]) do |entry, carrier|
-              carrier.push(types[entry]) if types[entry]
+          def class_with_modules(klass)
+            if klass.superclass.nil?
+              parent_modules = []
+            else
+              parent_modules = klass.superclass.included_modules
             end
-          end
-
-          def find_module_types(klass)
-            chain = inheritance_chain(klass).reverse
-            result = chain.reduce([]) do |carrier, entry|
-              ancestor_types = entry.ancestors.map do |candidate|
-                types[candidate]
-              end
-              carrier | ancestor_types.reject(&:nil?)
-            end
-            result.reverse
+            [klass, *(klass.included_modules - parent_modules)]
           end
         end
       end

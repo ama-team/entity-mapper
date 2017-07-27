@@ -56,9 +56,13 @@ module AMA
           # @return [AMA::Entity::Mapper::Type::Attribute]
           def resolve_parameter(parameter, substitution)
             clone.tap do |clone|
-              clone.types = types.map do |type|
-                next substitution if type == parameter
-                type.resolve_parameter(parameter, substitution)
+              clone.types = types.each_with_object([]) do |type, carrier|
+                if type == parameter
+                  buffer = substitution
+                  buffer = [buffer] unless buffer.is_a?(Enumerable)
+                  next carrier.push(*buffer)
+                end
+                carrier.push(type.resolve_parameter(parameter, substitution))
               end
             end
           end

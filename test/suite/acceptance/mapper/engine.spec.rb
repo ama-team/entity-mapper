@@ -107,18 +107,18 @@ describe klass do
       it 'should denormalize parametrized entity' do
         source = { value: 12 }
         type = parametrized_entity
-        derived = type.resolve(type.parameter!(:T) => type_class.new(Integer))
-        result = engine.map(source, derived)
-        expect(result).to be_a(derived.type)
+        definition = [parametrized_entity, T: Integer]
+        result = engine.map(source, definition)
+        expect(result).to be_a(type.type)
         expect(result.value).to eq(12)
       end
 
       it 'should denormalize nested entity' do
         source = { value: { id: :bill, number: 12 } }
         type = parametrized_entity
-        derived = type.resolve(type.parameter!(:T) => entity)
-        result = engine.map(source, derived)
-        expect(result).to be_a(derived.type)
+        definition = [parametrized_entity.type, T: entity]
+        result = engine.map(source, definition)
+        expect(result).to be_a(type.type)
         expect(result.value).to be_a(entity.type)
         expect(result.value.id).to eq(source[:value][:id])
         expect(result.value.number).to eq(source[:value][:number])
@@ -129,7 +129,7 @@ describe klass do
           'bill' => { id: :bill, number: 12 },
           'francis' => { id: :francis, number: 13 }
         }
-        type = hash_type.resolve(K: registry[Symbol], V: entity)
+        type = [Hash, K: Symbol, V: entity]
         result = engine.map(source, type)
         expect(result).to be_a(Hash)
         source.each do |key, value|
@@ -143,8 +143,7 @@ describe klass do
 
       it 'should denormalize array of entities' do
         source = [{ id: :bill, number: 12 }, { id: :francis, number: 13 }]
-        type = enumerable_type.resolve(T: entity)
-        result = engine.map(source, type)
+        result = engine.map(source, [Enumerable, T: entity])
         expect(result).to be_a(Array)
         result.each_with_index do |entry, index|
           value = source[index]
@@ -155,11 +154,10 @@ describe klass do
       end
 
       it 'should denormalize set' do
-        source = [1, 1, 2, 2, 3, 3, 4, 4]
-        type = set_type.resolve(T: any_type)
-        result = engine.map(source, type)
+        source = [1, 1, 2, 2, 3, 3, 4, 4, :alpha, 'beta']
+        result = engine.map(source, [Set, T: any_type])
         expect(result).to be_a(Set)
-        expect(result).to eq(Set.new([1, 2, 3, 4]))
+        expect(result).to eq(Set.new([1, 2, 3, 4, :alpha, 'beta']))
       end
 
       it 'should raise compliance error if unresolved type is passed' do
@@ -181,8 +179,8 @@ describe klass do
       it 'should try next type in case of failure' do
         source = { id: :bill, number: 12 }
         types = [
-          set_type.resolve(T: registry[Integer]),
-          enumerable_type.resolve(T: registry[Integer]),
+          [Set, T: Integer],
+          [Enumerable, T: Integer],
           entity
         ]
         result = engine.map(source, *types)

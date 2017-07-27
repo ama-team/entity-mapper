@@ -11,15 +11,34 @@ describe klass do
     Class.new
   end
 
+  let(:attribute) do
+    double
+  end
+
+  let(:parameter) do
+    double
+  end
+
   let(:left) do
-    klass.new(dummy)
+    klass.new(dummy).tap do |type|
+      type.attributes[:T] = attribute
+      type.parameters[:T] = parameter
+    end
   end
 
   let(:right) do
     klass.new(dummy).tap do |type|
-      type.attributes[:T] = double
-      type.parameters[:T] = double
+      type.attributes[:T] = attribute
+      type.parameters[:T] = parameter
     end
+  end
+
+  let(:different) do
+    klass.new(dummy)
+  end
+
+  let(:completely_different) do
+    klass.new(Class.new)
   end
 
   describe '#initialize' do
@@ -32,13 +51,21 @@ describe klass do
   end
 
   describe '#eql?' do
-    it 'should be equal to another type for same class' do
+    it 'should be equal to another type for same class with same attributes' do
       expect(left).to eq(right)
+    end
+
+    it 'returns false if attributes differ' do
+      expect(left).not_to eq(different)
+    end
+
+    it 'returns false if enclosed classes differ' do
+      expect(different).not_to eq(completely_different)
     end
   end
 
   describe '#hash' do
-    it 'should be equal among types for same class' do
+    it 'should be equal among types for same class with same attributes' do
       expect(left.hash).to eq(right.hash)
     end
   end
