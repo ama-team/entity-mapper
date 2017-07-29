@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require_relative 'any'
 require_relative '../type'
 require_relative '../mixin/errors'
 

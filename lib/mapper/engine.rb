@@ -1,11 +1,13 @@
 # frozen_string_literal: true
 
 require_relative 'path'
+require_relative 'context'
 require_relative 'mixin/errors'
 require_relative 'type/registry'
+require_relative 'type/resolver'
+require_relative 'type/concrete'
 require_relative 'engine/normalizer'
 require_relative 'engine/denormalizer'
-require_relative 'engine/context'
 
 module AMA
   module Entity
@@ -15,12 +17,19 @@ module AMA
       class Engine
         include Mixin::Errors
 
+        # @!attribute [r] registry
+        #   @return [Type::Registry]
         attr_reader :registry
+        # @!attribute [r] resolver
+        #   @return [Type::Resolver]
+        attr_reader :resolver
 
+        # @param [Type::Registry] registry
         def initialize(registry = nil)
           @registry = registry || Type::Registry.new
-          @normalizer = Normalizer.new(@registry)
-          @denormalizer = Denormalizer.new(@registry)
+          @resolver = Type::Resolver.new(@registry)
+          @normalizer = Normalizer.new
+          @denormalizer = Denormalizer.new
         end
 
         # @param [Object] source
@@ -39,6 +48,12 @@ module AMA
           end
         end
 
+        # Resolves provided definition, creating type hierarchy.
+        # @param [Array<Class, Module, Type, Array>] definition
+        def resolve(definition)
+          @resolver.resolve(definition)
+        end
+
         private
 
         # @return [AMA::Entity::Mapper::Engine::Context] context
@@ -48,7 +63,7 @@ module AMA
             denormalizer: @denormalizer,
             path: Path.new
           )
-          Context.new(**options)
+          Mapper::Context.new(**options)
         end
 
         # @param [Object] source
@@ -72,9 +87,7 @@ module AMA
         # @param [AMA::Entity::Mapper::Engine::Context] context
         def try_map(source, type, context)
           return source if type.satisfied_by?(source)
-          normalized = @normalizer.normalize(source, context, type)
-          result = @denormalizer.denormalize(normalized, type, context)
-          type.instance!(result, context)
+          result = reassemble(source, type, context)
           return result if type.satisfied_by?(result)
           result = map_attributes(result, type, context)
           return result if type.satisfied_by?(result)
@@ -82,20 +95,28 @@ module AMA
           mapping_error(message, context: context)
         end
 
+        def reassemble(source, type, context)
+          return source if type.instance?(source)
+          source_type = registry.find(source.class)
+          source_type ||= Type::Concrete.new(source.class)
+          normalized = @normalizer.normalize(source, source_type, context)
+          result = @denormalizer.denormalize(normalized, type, context)
+          type.instance!(result, context)
+          result
+        end
+
         # @param [Object] entity
         # @param [AMA::Entity::Mapper::Type] type
         # @param [AMA::Entity::Mapper::Engine::Context] context
         def map_attributes(entity, type, context)
-          instance = type.factory.create(context, entity)
-          enumerator = type.enumerator(entity)
-          acceptor = type.acceptor(instance)
+          instance = type.factory.create(type, entity, context)
+          enumerator = type.enumerator.enumerate(entity, type, context)
           enumerator.each do |attribute, value, segment = nil|
+            next_context = segment ? context.advance(segment) : context
             unless attribute.satisfied_by?(value)
-              segment = Path::Segment.attribute(attribute.name) unless segment
-              next_context = context.advance(segment)
               value = recursive_map(value, attribute.types, next_context)
             end
-            acceptor.accept(attribute, value, segment)
+            type.injector.inject(instance, type, attribute, value, next_context)
           end
           instance
         end
@@ -105,26 +126,11 @@ module AMA
             compliance_error('Requested map operation with no target types')
           end
           types = types.map do |type|
-            normalize_type(type)
+            @resolver.resolve(type)
           end
           types.each do |type|
             type.resolved!(context)
           end
-        end
-
-        def normalize_type(type)
-          return type if type.is_a?(Type)
-          parameters = {}
-          type, parameters = type if type.is_a?(Array)
-          if [Module, Class].any? { |candidate| type.is_a?(candidate) }
-            type = @registry[type] || Type::Concrete.new(type)
-          end
-          unless type.is_a?(Type)
-            message = "Provided type in unknown format: #{type}, " \
-              'Type/Class/Module expected'
-            compliance_error(message)
-          end
-          type.resolve(parameters)
         end
       end
     end

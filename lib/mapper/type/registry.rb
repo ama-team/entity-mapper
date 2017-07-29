@@ -1,6 +1,13 @@
 # frozen_String_literal: true
 
 require_relative '../mixin/errors'
+require_relative 'concrete'
+require_relative 'parameter'
+require_relative 'hardwired/enumerable_type'
+require_relative 'hardwired/hash_type'
+require_relative 'hardwired/hash_tuple_type'
+require_relative 'hardwired/set_type'
+require_relative 'hardwired/primitive_type'
 
 module AMA
   module Entity
@@ -16,25 +23,59 @@ module AMA
             @types = {}
           end
 
+          # @return [AMA::Entity::Mapper::Type::Registry]
+          def with_default_types
+            register(Hardwired::EnumerableType::INSTANCE)
+            register(Hardwired::HashType::INSTANCE)
+            register(Hardwired::SetType::INSTANCE)
+            register(Hardwired::HashTupleType::INSTANCE)
+            Hardwired::PrimitiveType::ALL.each do |type|
+              register(type)
+            end
+            self
+          end
+
+          # @param [Class, Module] klass
+          def [](klass)
+            @types[klass]
+          end
+
+          # @param [AMA::Entity::Mapper::Type] type
+          # @param [Class, Module] klass
+          def []=(klass, type)
+            @types[klass] = type
+          end
+
           # @param [AMA::Entity::Mapper::Type::Concrete] type
           def register(type)
             @types[type.type] = type
           end
 
           # @param [Class] klass
-          def registered?(klass)
+          def key?(klass)
             @types.key?(klass)
           end
 
-          def for(klass)
-            find_class_types(klass) | find_module_types(klass)
+          alias registered? key?
+
+          # @param [Class, Module] klass
+          # @return [Array<AMA::Entity::Mapper::Type>]
+          def select(klass)
+            types = class_hierarchy(klass).map do |entry|
+              @types[entry]
+            end
+            types.reject(&:nil?)
           end
 
+          # @param [Class, Module] klass
+          # @return [AMA::Entity::Mapper::Type, NilClass]
           def find(klass)
-            candidates = self.for(klass)
+            candidates = select(klass)
             candidates.empty? ? nil : candidates.first
           end
 
+          # @param [Class, Module] klass
+          # @return [AMA::Entity::Mapper::Type]
           def find!(klass)
             candidate = find(klass)
             return candidate if candidate
@@ -42,42 +83,33 @@ module AMA
             compliance_error(message)
           end
 
+          # @param [Class, Module] klass
+          # @return [TrueClass, FalseClass]
           def include?(klass)
-            !find(klass).nil?
-          end
-
-          def [](klass)
-            @types[klass]
+            !select(klass).empty?
           end
 
           private
 
-          def inheritance_chain(klass)
-            cursor = klass
+          # @param [Class, Module] klass
+          def class_hierarchy(klass)
+            ptr = klass
             chain = []
             loop do
-              chain.push(cursor)
-              cursor = cursor.superclass
-              break if cursor.nil?
+              chain.push(*class_with_modules(ptr))
+              break if !ptr.respond_to?(:superclass) || ptr.superclass.nil?
+              ptr = ptr.superclass
             end
             chain
           end
 
-          def find_class_types(klass)
-            inheritance_chain(klass).each_with_object([]) do |entry, carrier|
-              carrier.push(types[entry]) if types[entry]
+          def class_with_modules(klass)
+            if klass.superclass.nil?
+              parent_modules = []
+            else
+              parent_modules = klass.superclass.included_modules
             end
-          end
-
-          def find_module_types(klass)
-            chain = inheritance_chain(klass).reverse
-            result = chain.reduce([]) do |carrier, entry|
-              ancestor_types = entry.ancestors.map do |candidate|
-                types[candidate]
-              end
-              carrier | ancestor_types.reject(&:nil?)
-            end
-            result.reverse
+            [klass, *(klass.included_modules - parent_modules)]
           end
         end
       end

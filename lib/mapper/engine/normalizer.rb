@@ -1,40 +1,29 @@
 # frozen_string_literal: true
 
-require_relative 'context'
 require_relative '../mixin/errors'
-require_relative 'normalizer/entity'
-require_relative 'normalizer/object'
-require_relative 'normalizer/primitive'
-require_relative 'normalizer/enumerable'
+require_relative '../context'
 
 module AMA
   module Entity
     class Mapper
       class Engine
         # Class for conversion of any passed structure down to basic primitives
-        # - strings, hashes, etc.
+        # - strings, hashes, etc. Delegates actual work to type normalizer
+        # and adds security wrap.
         class Normalizer
           include Mixin::Errors
 
-          def initialize(registry)
-            @registry = registry
-            @stack = [
-              Primitive.new,
-              Enumerable.new,
-              Entity.new(registry),
-              Object.new
-            ]
-          end
-
-          def normalize(value, context = nil, target_type = nil)
-            context ||= Context.new
-            normalizer = @stack.find { |candidate| candidate.supports(value) }
-            normalizer.normalize(value, context, target_type)
+          # @param [Object] value
+          # @param [AMA::Entity::Mapper::Type] source_type
+          # @param [AMA::Entity::Mapper::Context] context
+          # @return [Object]
+          def normalize(value, source_type, context)
+            normalizer = source_type.normalizer
+            normalizer.normalize(value, source_type, context)
           rescue StandardError => e
             raise_if_internal(e)
-            message = "Error while normalizing #{value.class} " \
-              "at #{context.path}: #{e.message}"
-            mapping_error(message, context: context)
+            message = "Error while normalizing #{value.class}"
+            mapping_error(message, context: context, parent: e)
           end
         end
       end

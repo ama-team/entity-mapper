@@ -13,13 +13,11 @@ module AMA
           error_types = %i[Mapping Compliance]
           error_namespace = ::AMA::Entity::Mapper::Exception
 
-          # @!method mapping_error(message, parent_error = nil)
+          # @!method mapping_error(message, **options)
           #   @param [String] message
-          #   @param [StandardError] parent_error
 
-          # @!method compliance_error(message, parent_error = nil)
+          # @!method compliance_error(message, **options)
           #   @param [String] message
-          #   @param [StandardError] parent_error
           error_types.each do |type|
             method = "#{type.to_s.downcase}_error"
             error_class = error_namespace.const_get("#{type}Error")
@@ -30,7 +28,8 @@ module AMA
                 message += " (path: #{options[:context].path})"
               end
               unless parent_error.nil?
-                message += ". Parent error: #{parent_error.message}"
+                message += '.' if /\w$/ =~ message
+                message += " Parent error: #{parent_error.message}"
               end
               raise error_class, message
             end

@@ -19,28 +19,42 @@ namespace :test do
     sh 'allure generate --clean -o test/report/allure test/metadata/allure/**'
   end
 
-  types = %i[unit system acceptance]
+  types = %i[unit integration acceptance]
   types.each do |type|
-    RSpec::Core::RakeTask.new(type).tap do |task|
-      task.pattern = "suite/#{type}/**/*.spec.rb"
-      task.rspec_opts = "--default-path test --require support/rspec/#{type}/config"
+    task type do
+      Rake::Task[:'test:clean'].invoke
+      types.each do |stage|
+        Rake::Task[:"test:#{stage}:only"].invoke
+        break if stage == type
+      end
     end
     namespace type do
+      RSpec::Core::RakeTask.new(:only).tap do |task|
+        task.pattern = "suite/#{type}/**/*.spec.rb"
+        task.rspec_opts = "--default-path test --require support/rspec/#{type}/config"
+      end
       task :'with-report' do
         Rake::Task[:'test:clean'].invoke
         begin
-          types.each do |stage|
-            Rake::Task[:"test:#{stage}"].invoke
-            break if stage == type
-          end
+          Rake::Task[:"test:#{type}"].invoke
         ensure
           Rake::Task[:'test:report'].invoke
+        end
+      end
+      namespace :only do
+        task :'with-report' do
+          Rake::Task[:'test:clean'].invoke
+          begin
+            Rake::Task[:"test:#{type}:only"].invoke
+          ensure
+            Rake::Task[:'test:report'].invoke
+          end
         end
       end
     end
   end
 
-  task all: %i[unit system acceptance]
+  task all: %i[acceptance]
 
   task :'with-report' do
     Rake::Task[:'test:clean'].invoke

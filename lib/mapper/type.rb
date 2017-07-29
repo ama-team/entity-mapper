@@ -16,7 +16,7 @@ module AMA
         def initialize
           message = "#{self.class} is an abstract class " \
             'and can\'t be isntantiated directly'
-          compliance_error(message, nil)
+          compliance_error(message)
         end
         # :nocov:
 
@@ -79,9 +79,6 @@ module AMA
         # @param [AMA::Entity::Mapper::Context] context
         def resolved!(context = nil)
           context ||= Context.new
-          unless parameters.empty?
-            compliance_error("Type #{self} is not resolved", context: context)
-          end
           attributes.values.each do |attribute|
             attribute.resolved!(context)
           end

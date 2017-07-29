@@ -10,11 +10,6 @@ module AMA
         module Reflection
           include Errors
 
-          # @deprecated
-          def populate_object(object, values)
-            set_object_attributes(object, values)
-          end
-
           def set_object_attributes(object, values)
             values.each do |attribute, value|
               set_object_attribute(object, attribute, value)
@@ -31,7 +26,7 @@ module AMA
             object.instance_variable_set("@#{name}", value)
           rescue StandardError => e
             message = "Failed to set attribute #{name} on #{object.class}"
-            mapping_error(message, e)
+            mapping_error(message, parent: e)
           end
 
           # @param [Object] object
@@ -47,6 +42,20 @@ module AMA
           def object_variable(object, name)
             name = "@#{name}" unless name[0] == '@'
             object.instance_variable_get(name)
+          end
+
+          def object_variable_exists(object, name)
+            object.instance_variables.include?("@#{name}".to_sym)
+          end
+
+          def install_object_method(object, name, handler)
+            compliance_error('Handler not provided') unless handler
+            object.define_singleton_method(name, &handler)
+            object
+          end
+
+          def method_object(method, &handler)
+            install_object_method(Object.new, method, handler)
           end
         end
       end

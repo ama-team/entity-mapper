@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require_relative 'concrete'
 require_relative '../mixin/errors'
 
 module AMA
@@ -7,12 +8,20 @@ module AMA
     class Mapper
       class Type
         # Used as a wildcard to pass anything through
-        class Any < Type
+        class Any < Concrete
           include Mixin::Errors
 
           def initialize; end
 
           INSTANCE = new
+
+          def parameters
+            {}
+          end
+
+          def attributes
+            {}
+          end
 
           def parameter!(*)
             compliance_error('Tried to declare parameter on Any type')

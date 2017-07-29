@@ -6,6 +6,7 @@ module AMA
       module Exception
         # Made to be thrown whenever mapping can't be done
         class MappingError < RuntimeError
+          include Exception
         end
       end
     end

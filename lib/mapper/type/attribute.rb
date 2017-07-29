@@ -25,6 +25,9 @@ module AMA
           # @!attribute sensitive
           #   @return [TrueClass, FalseClass]
           attr_accessor :sensitive
+          # @!attribute default
+          #   @return [Object]
+          attr_accessor :default
 
           def initialize(owner, name, *types, **options)
             @owner = validate_owner!(owner)
@@ -53,9 +56,13 @@ module AMA
           # @return [AMA::Entity::Mapper::Type::Attribute]
           def resolve_parameter(parameter, substitution)
             clone.tap do |clone|
-              clone.types = types.map do |type|
-                next substitution if type == parameter
-                type.resolve_parameter(parameter, substitution)
+              clone.types = types.each_with_object([]) do |type, carrier|
+                if type == parameter
+                  buffer = substitution
+                  buffer = [buffer] unless buffer.is_a?(Enumerable)
+                  next carrier.push(*buffer)
+                end
+                carrier.push(type.resolve_parameter(parameter, substitution))
               end
             end
           end

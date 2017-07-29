@@ -12,3 +12,6 @@
 # Test artifacts
 /test/metadata
 /test/report
+
+# Jekyll artifacts
+/.sass-cache

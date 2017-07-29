@@ -4,13 +4,19 @@
 
 require_relative '../type'
 require_relative '../mixin/errors'
+require_relative '../mixin/reflection'
 require_relative 'attribute'
 require_relative 'parameter'
-require_relative 'concrete/factory'
-require_relative 'concrete/enumerator'
-require_relative 'concrete/acceptor'
-require_relative 'concrete/extractor'
-require_relative 'concrete/wrappers'
+require_relative '../api/wrapper/normalizer'
+require_relative '../api/wrapper/denormalizer'
+require_relative '../api/wrapper/enumerator'
+require_relative '../api/wrapper/injector'
+require_relative '../api/wrapper/factory'
+require_relative '../api/default/normalizer'
+require_relative '../api/default/denormalizer'
+require_relative '../api/default/enumerator'
+require_relative '../api/default/injector'
+require_relative '../api/default/factory'
 
 module AMA
   module Entity
@@ -22,6 +28,7 @@ module AMA
         # generics).
         class Concrete < Type
           include Mixin::Errors
+          include Mixin::Reflection
 
           # @!attribute type
           #   @return [Class]
@@ -42,7 +49,7 @@ module AMA
           # Arguments: input, context, target type, fallback-block
           #
           # @!attribute normalizer
-          #   @return [Proc]
+          #   @return [AMA::Entity::Mapper::API::Normalizer]
           attr_accessor :normalizer
           # Denormalizer proc that can be used to convert basic data structure
           # into entity.
@@ -53,31 +60,25 @@ module AMA
           # Arguments: input, context, target type, fallback-block
           #
           # @!attribute denormalizer
-          #   @return [Proc]
+          #   @return [AMA::Entity::Mapper::API::Denormalizer]
           attr_accessor :denormalizer
           # @!attribute enumerator
-          #   @return [Proc]
-          attr_reader :enumerator
-          # @!attribute acceptor
-          #   @return [Proc]
-          attr_reader :acceptor
-          # @!attribute extractor
-          #   @return [Proc]
-          attr_reader :extractor
+          #   @return [AMA::Entity::Mapper::API::Enumerator]
+          attr_accessor :enumerator
+          # @!attribute [w] acceptor
+          #   @return [AMA::Entity::Mapper::API::Injector]
+          attr_accessor :injector
           # @!attribute factory
-          #   @return [Proc]
-          attr_reader :factory
+          #   @return [AMA::Entity::Mapper::API::Factory]
+          attr_accessor :factory
 
           def initialize(klass)
             @type = validate_type!(klass)
             @parameters = {}
             @attributes = {}
-            self.factory = Factory.new(self)
-            self.enumerator = lambda do |object, type, *|
-              Enumerator.new(type, object)
+            %i[factory normalizer denormalizer enumerator injector].each do |h|
+              send("#{h}=", API::Default.const_get(h.capitalize)::INSTANCE)
             end
-            self.acceptor = ->(object, type, *) { Acceptor.new(type, object) }
-            self.extractor = ->(object, type, *) { Extractor.new(type, object) }
           end
 
           # Tells if provided object is an instance of this type.
@@ -96,7 +97,7 @@ module AMA
           # @return [TrueClass, FalseClass]
           def satisfied_by?(object)
             return false unless instance?(object)
-            enumerator(object).all? do |attribute, value, *|
+            enumerator.enumerate(object, self).all? do |attribute, value, *|
               attribute.satisfied_by?(value)
             end
           end
@@ -118,70 +119,73 @@ module AMA
           # Creates new type parameter
           #
           # @param [Symbol] id
-          # @return [AMA::Entity::Mapper::Type::Parameter]
+          # @return [Parameter]
           def parameter!(id)
             id = id.to_sym
             return parameters[id] if parameters.key?(id)
             parameters[id] = Parameter.new(self, id)
           end
 
-          # Resolves single parameter type
+          # Resolves single parameter type. Substitution may be either another
+          # parameter, concrete type or array of concrete types.
           #
-          # @param [AMA::Entity::Mapper::Type::Parameter] parameter
-          # @param [AMA::Entity::Mapper::Type] substitution
-          def resolve_parameter(parameter, substitution, context = nil)
-            parameter = normalize_parameter(parameter, context)
-            substitution = normalize_substitution(substitution, context)
+          # @param [Parameter] parameter
+          # @param [Parameter, Array<Concrete>] substitution
+          def resolve_parameter(parameter, substitution)
+            parameter = validate_parameter!(parameter)
+            substitution = validate_substitution!(substitution)
             clone.tap do |clone|
               intermediate = attributes.map do |key, value|
                 [key, value.resolve_parameter(parameter, substitution)]
               end
               clone.attributes = Hash[intermediate]
-              clone.parameters = clone.parameters.reject do |_, p|
-                p == parameter
+              intermediate = clone.parameters.map do |key, value|
+                [key, value == parameter ? substitution : value]
               end
+              clone.parameters = Hash[intermediate]
             end
           end
 
-          def factory=(factory)
-            @factory = Wrappers.factory(self, factory)
+          def factory_block(&block)
+            self.factory = method_object(:create, &block)
           end
 
-          def enumerator(object, context = nil)
-            @enumerator.call(object, self, context)
+          def normalizer_block(&block)
+            self.normalizer = method_object(:normalize, &block)
           end
 
-          def enumerator=(enumerator_factory)
-            @enumerator = Wrappers.enumerator(enumerator_factory)
+          def denormalizer_block(&block)
+            self.denormalizer = method_object(:denormalize, &block)
           end
 
-          def acceptor(object, context = nil)
-            @acceptor.call(object, self, context)
+          def enumerator_block(&block)
+            self.enumerator = method_object(:enumerate, &block)
           end
 
-          def acceptor=(acceptor_factory)
-            @acceptor = Wrappers.acceptor(acceptor_factory)
-          end
-
-          def extractor(object, context = nil)
-            @extractor.call(object, self, context)
-          end
-
-          def extractor=(extractor_factory)
-            @extractor = Wrappers.extractor(extractor_factory)
+          def injector_block(&block)
+            self.injector = method_object(:inject, &block)
           end
 
           def hash
-            @type.hash
+            @type.hash ^ @attributes.hash
           end
 
           def eql?(other)
             return false unless other.is_a?(self.class)
-            @type == other.type
+            @type == other.type && @attributes == other.attributes
           end
 
           def to_s
-            "Concrete Type {#{@type}}"
+            representation = @type.to_s
+            return representation if parameters.empty?
+            params = parameters.map do |key, value|
+              if value.is_a?(Enumerable)
+                value = "[#{value.map(&:to_s).join(', ')}]"
+              end
+              value = value.is_a?(Parameter) ? '?' : value.to_s
+              "#{key}:#{value}"
+            end
+            "#{representation}<#{params.join(', ')}>"
           end
 
           private
@@ -190,27 +194,37 @@ module AMA
             return type if type.is_a?(Class) || type.is_a?(Module)
             message = 'Expected concrete type to be instantiated with ' \
               "Class/Module instance, got #{type}"
-            compliance_error(message, nil)
+            compliance_error(message)
           end
 
-          def normalize_parameter(parameter, context = nil)
-            if parameter.is_a?(Symbol) && parameters.key?(parameter)
-              return parameters[parameter]
-            end
+          def validate_parameter!(parameter)
             return parameter if parameter.is_a?(Parameter)
             message = "Non-parameter type #{parameter} " \
               'supplied for resolution'
-            compliance_error(message, context: context)
+            compliance_error(message)
           end
 
-          def normalize_substitution(substitution, context)
-            return substitution if substitution.is_a?(Type)
-            if [Module, Class].any? { |type| substitution.is_a?(type) }
-              return Concrete.new(substitution)
+          def validate_substitution!(substitution)
+            return substitution if substitution.is_a?(Parameter)
+            substitution = [substitution] if substitution.is_a?(self.class)
+            if substitution.is_a?(Enumerable)
+              return validate_substitutions!(substitution)
             end
-            message = "#{substitution.class} is passed as parameter " \
-              'substitution, Type / Class / Module expected'
-            compliance_error(message, context: context)
+            message = 'Provided substitution is neither another Parameter ' \
+              'or Array of concrete Types: ' \
+              "#{substitution} (#{substitution.class})"
+            compliance_error(message)
+          end
+
+          def validate_substitutions!(substitutions)
+            if substitutions.empty?
+              compliance_error('Empty list of substitutions passed')
+            end
+            invalid = substitutions.reject do |substitution|
+              substitution.is_a?(Concrete)
+            end
+            return substitutions if invalid.empty?
+            compliance_error("Invalid substitutions supplied: #{invalid}")
           end
         end
       end
