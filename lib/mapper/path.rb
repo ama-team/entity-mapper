@@ -78,6 +78,10 @@ module AMA
           @segments.size
         end
 
+        def segments
+          @segments.clone
+        end
+
         # @return [Array<AMA::Entity::Mapper::Path::Segment>]
         def to_a
           @segments.clone

@@ -3,6 +3,7 @@
 require_relative 'mapper/version'
 require_relative 'mapper/engine'
 require_relative 'mapper/type/concrete'
+require_relative 'mapper/type/registry'
 
 module AMA
   module Entity
@@ -11,7 +12,7 @@ module AMA
       attr_reader :engine
 
       def initialize(engine = nil)
-        @engine = engine || Engine.new
+        @engine = engine || Engine.new(Type::Registry.new.with_default_types)
       end
 
       def types
@@ -27,12 +28,20 @@ module AMA
         @engine.resolve(type)
       end
 
+      def map(input, *types, **options)
+        @engine.map(input, *types, **options)
+      end
+
+      def [](klass)
+        @engine.registry[klass]
+      end
+
       class << self
         def initialize
           @mapper = Mapper.new
         end
 
-        def swap(mapper)
+        def handler=(mapper)
           @mapper = mapper
         end
 

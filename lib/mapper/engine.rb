@@ -17,9 +17,14 @@ module AMA
       class Engine
         include Mixin::Errors
 
+        # @!attribute [r] registry
+        #   @return [Type::Registry]
         attr_reader :registry
+        # @!attribute [r] resolver
+        #   @return [Type::Resolver]
         attr_reader :resolver
 
+        # @param [Type::Registry] registry
         def initialize(registry = nil)
           @registry = registry || Type::Registry.new
           @resolver = Type::Resolver.new(@registry)
@@ -43,8 +48,10 @@ module AMA
           end
         end
 
-        def resolve(type)
-          @resolver.resolve(type)
+        # Resolves provided definition, creating type hierarchy.
+        # @param [Array<Class, Module, Type, Array>] definition
+        def resolve(definition)
+          @resolver.resolve(definition)
         end
 
         private
@@ -105,8 +112,7 @@ module AMA
           instance = type.factory.create(type, entity, context)
           enumerator = type.enumerator.enumerate(entity, type, context)
           enumerator.each do |attribute, value, segment = nil|
-            segment = Path::Segment.attribute(attribute.name) unless segment
-            next_context = context.advance(segment)
+            next_context = segment ? context.advance(segment) : context
             unless attribute.satisfied_by?(value)
               value = recursive_map(value, attribute.types, next_context)
             end

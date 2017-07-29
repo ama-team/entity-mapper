@@ -44,6 +44,10 @@ module AMA
             object.instance_variable_get(name)
           end
 
+          def object_variable_exists(object, name)
+            object.instance_variables.include?("@#{name}".to_sym)
+          end
+
           def install_object_method(object, name, handler)
             compliance_error('Handler not provided') unless handler
             object.define_singleton_method(name, &handler)

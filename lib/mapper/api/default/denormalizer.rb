@@ -36,7 +36,7 @@ module AMA
 
             def validate_source!(source, type, context)
               return if source.is_a?(Hash)
-              message = "Expected hash, #{source.class} provided " \
+              message = "Expected Hash, #{source.class} provided " \
                 "(while denormalizing #{type})"
               mapping_error(message, context: context)
             end

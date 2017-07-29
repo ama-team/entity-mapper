@@ -135,10 +135,13 @@ describe klass do
     it 'should provide default enumerator' do
       type = klass.new(dummy_class)
       type.attributes[:id] = double(name: :id, virtual: false)
+      specimen = dummy_class.new
+      specimen.id = :symbol
       proc = lambda do |handler|
-        type.enumerator.enumerate(dummy_class.new, type).each(&handler)
+        type.enumerator.enumerate(specimen, type).each(&handler)
       end
-      expect(&proc).to yield_with_args([type.attributes[:id], nil, anything])
+      args = [type.attributes[:id], specimen.id, anything]
+      expect(&proc).to yield_with_args(args)
     end
   end
 
@@ -196,6 +199,10 @@ describe klass do
     it 'passes call to all attributes using enumerator call' do
       type = klass.new(dummy_class)
       input = double(is_a?: true)
+      input.singleton_class.instance_eval do
+        attr_accessor :value
+      end
+      input.value = :value
       attribute = type.attribute!(:value, dummy_class)
       expect(type).to receive(:instance?).and_call_original
       expect(attribute).to receive(:satisfied_by?).and_return(false)

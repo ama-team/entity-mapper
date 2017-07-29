@@ -19,7 +19,7 @@ module AMA
 
           # @return [AMA::Entity::Mapper::Type::Concrete]
           def bound_type
-            @mapper.types[self]
+            mapper[self]
           end
 
           # @param [String, Symbol] name
@@ -30,6 +30,12 @@ module AMA
           def attribute(name, *types, **options)
             types = types.map { |type| @mapper.resolve(type) }
             bound_type.attribute!(name, *types, **options)
+            define_method(name) do
+              instance_variable_get("@#{name}")
+            end
+            define_method("#{name}=") do |value|
+              instance_variable_set("@#{name}", value)
+            end
           end
 
           # @param [String, Symbol] id
@@ -38,13 +44,22 @@ module AMA
             bound_type.parameter!(id)
           end
 
-          %i[factory enumerator injector normalizer denormalizer].each do |m|
-            define_method m do |handler|
-              bound_type.send(m, handler)
+          handlers = {
+            factory: :create,
+            enumerator: :enumerate,
+            injector: :inject,
+            normalizer: :normalize,
+            denormalizer: :denormalize
+          }
+          handlers.each do |name, method_name|
+            setter_name = "#{name}="
+            define_method setter_name do |handler|
+              wrapper = API::Wrapper.const_get(name.capitalize).new(handler)
+              bound_type.send(setter_name, wrapper)
             end
 
-            define_method "#{m}_block" do |&block|
-              bound_type.send(m, &block)
+            define_method "#{name}_block" do |&block|
+              send(setter_name, method_object(method_name, &block))
             end
           end
         end

@@ -10,10 +10,10 @@ module AMA
       module DSL
         class << self
           def included(klass)
-            klass.class_eval do
+            klass.singleton_class.instance_eval do
               include ClassMethods
-              self.mapper = Mapper.handler
             end
+            klass.mapper = Mapper.handler
           end
         end
       end

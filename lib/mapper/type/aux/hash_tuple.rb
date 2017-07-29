@@ -6,22 +6,22 @@ module AMA
       class Type
         module Aux
           # Simple class to store paired data items
-          class Pair
-            attr_accessor :left
-            attr_accessor :right
+          class HashTuple
+            attr_accessor :key
+            attr_accessor :value
 
-            def initialize(left: nil, right: nil)
-              @left = left
-              @right = right
+            def initialize(key: nil, value: nil)
+              @key = key
+              @value = value
             end
 
             def hash
-              @left.hash ^ @right.hash
+              @key.hash ^ @value.hash
             end
 
             def eql?(other)
-              return false unless other.is_a?(Pair)
-              @left == other.left && @right == other.right
+              return false unless other.is_a?(HashTuple)
+              @key == other.key && @value == other.value
             end
 
             def ==(other)
