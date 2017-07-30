@@ -130,6 +130,10 @@ module AMA
             end
           end
 
+          def violations(object, context)
+            validator.validate(object, self, context)
+          end
+
           def factory_block(&block)
             self.factory = method_object(:create, &block)
           end
@@ -151,7 +155,7 @@ module AMA
           end
 
           def validator_block(&block)
-            self.validator = method_object(:validate!, &block)
+            self.validator = method_object(:validate, &block)
           end
 
           def hash

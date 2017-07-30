@@ -17,7 +17,7 @@ module AMA
               this = self
 
               factory_block do |*|
-                this.compliance_error("#{self} factory should never be called")
+                this.compliance_error("#{this} factory should never be called")
               end
               normalizer_block do |entity, *|
                 entity
@@ -28,6 +28,7 @@ module AMA
                 Enumerator.new { |*| }
               end
               injector_block { |*| }
+              validator_block { |*| [] }
             end
 
             private

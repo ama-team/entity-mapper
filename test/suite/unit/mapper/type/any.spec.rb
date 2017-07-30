@@ -51,7 +51,6 @@ describe klass do
     # yes i do pursuit 100% coverage
     it 'should return constant output' do
       expect(klass.new.to_s).to eq(klass.new.to_s)
-      expect(klass.new.to_s).to match(/any/i)
     end
   end
 end

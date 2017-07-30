@@ -97,11 +97,32 @@ module AMA
           return if instance?(object)
           message = "Expected to receive instance of #{self}, got " \
             "#{object.class}"
-          mapping_error(message, context: context)
+          validation_error(message, context: context)
+        end
+
+        def valid?(object, context)
+          instance?(object) && violations(object, context).empty?
+        end
+
+        def valid!(object, context)
+          instance!(object, context)
+          violations = self.violations(object, context)
+          return if violations.empty?
+          message = 'Validation failed, following violations were discovered: '
+          violations = violations.map do |attribute, violation, segment|
+            "[#{attribute}: #{violation} (#{segment})]"
+          end
+          message += violations.join(', ')
+          validation_error(message, context: context)
         end
 
         # :nocov:
+        # @deprecated
         def satisfied_by?(object)
+          abstract_method
+        end
+
+        def violations(object, context)
           abstract_method
         end
 

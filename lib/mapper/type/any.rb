@@ -11,7 +11,9 @@ module AMA
         class Any < Concrete
           include Mixin::Errors
 
-          def initialize; end
+          def initialize
+            super(self.class)
+          end
 
           INSTANCE = new
 
@@ -35,8 +37,8 @@ module AMA
             true
           end
 
-          def satisfied_by?(*)
-            true
+          def violations(*)
+            []
           end
 
           def hash
@@ -52,7 +54,7 @@ module AMA
           end
 
           def to_s
-            'Any type placeholder'
+            '*'
           end
         end
       end

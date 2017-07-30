@@ -2,9 +2,11 @@
 
 require_relative '../../../../../lib/mapper/type'
 require_relative '../../../../../lib/mapper/exception/mapping_error'
+require_relative '../../../../../lib/mapper/exception/validation_error'
 
 inspected_class = ::AMA::Entity::Mapper::Type
 mapping_error_class = ::AMA::Entity::Mapper::Exception::MappingError
+validation_error_class = ::AMA::Entity::Mapper::Exception::ValidationError
 
 describe inspected_class do
   let(:klass) do
@@ -137,7 +139,7 @@ describe inspected_class do
       proc = lambda do
         dummy.instance!(nil)
       end
-      expect(&proc).to raise_error(mapping_error_class)
+      expect(&proc).to raise_error(validation_error_class)
     end
   end
 end
