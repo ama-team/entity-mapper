@@ -8,11 +8,15 @@ mapping_error_class = ::AMA::Entity::Mapper::Exception::MappingError
 
 describe klass do
   let(:type) do
-    double(type: double)
+    double(
+      type: double,
+      attributes: {},
+      injector: double(inject: nil)
+    )
   end
 
   describe '#create' do
-    it 'should provide fallback to default factory' do
+    it 'provides fallback to default factory' do
       result = double
       expect(type.type).to receive(:new).exactly(:once).and_return(result)
       factory = double
@@ -22,7 +26,7 @@ describe klass do
       expect(klass.new(factory).create(type)).to eq(result)
     end
 
-    it 'should wrap exceptions in mapping error' do
+    it 'wraps exceptions in mapping error' do
       factory = double
       expect(factory).to receive(:create).exactly(:once).and_raise
       proc = lambda do
@@ -31,11 +35,10 @@ describe klass do
       expect(&proc).to raise_error(mapping_error_class)
     end
 
-    it 'should provide hint about method signature' do
-      factory_class = Class.new do
-        def create; end
-      end
-      factory = factory_class.new
+    it 'provides hint about method signature' do
+      error_class = ArgumentError
+      factory = double
+      expect(factory).to receive(:create).exactly(:once).and_raise(error_class)
       proc = lambda do
         klass.new(factory).create(type)
       end

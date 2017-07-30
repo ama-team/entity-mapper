@@ -124,10 +124,10 @@ describe klass do
   end
 
   describe '#factory' do
-    it 'should provide default factory if none was set' do
+    it 'provides default factory if none was set' do
       type = klass.new(dummy_class)
       factory = type.factory
-      expect(factory.create(type)).to be_a(dummy_class)
+      expect(factory.create(type, double, double)).to be_a(dummy_class)
     end
   end
 
