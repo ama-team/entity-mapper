@@ -38,7 +38,8 @@ module AMA
               return if attribute.values.empty? || attribute.values.nil?
               return if attribute.values.include?(value)
               message = "Attribute #{attribute} doesn't conform to " \
-                "any of allowed values: #{attribute.values}"
+                'any of allowed values, expected one of: ' \
+                "#{attribute.values}, received: #{value}"
               validation_error(message, context: context)
             end
 

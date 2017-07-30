@@ -18,8 +18,8 @@ module AMA
             # @param [AMA::Entity::Mapper::Type::Attribute] attribute
             # @param [AMA::Entity::Mapper::Context] context
             def validate!(value, attribute, context)
-              @validator.validate(value, attribute, context) do |v, a, c|
-                API::Default::AttributeValidator::INSTANCE.validate(v, a, c)
+              @validator.validate!(value, attribute, context) do |v, a, c|
+                API::Default::AttributeValidator::INSTANCE.validate!(v, a, c)
               end
             rescue StandardError => e
               # validation errors are also considered internal and would
@@ -30,7 +30,7 @@ module AMA
                 message += '. Does provided validator have ' \
                   '(value, attribute, context) signature?'
               end
-              compliance_error(message, context: context)
+              compliance_error(message, context: context, parent: e)
             end
           end
         end

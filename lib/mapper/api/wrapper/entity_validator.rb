@@ -30,7 +30,7 @@ module AMA
                 message += '. Does provided validator have ' \
                   '(entity, type, context) signature?'
               end
-              compliance_error(message, context: context)
+              compliance_error(message, context: context, parent: e)
             end
           end
         end

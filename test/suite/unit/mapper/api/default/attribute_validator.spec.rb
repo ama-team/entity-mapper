@@ -15,8 +15,8 @@ describe klass do
     double(
       default: nil,
       nullable: false,
-      type: double(is_a?: false),
-      values: [:value]
+      types: [double(instance?: true)],
+      values: []
     )
   end
 
@@ -28,20 +28,42 @@ describe klass do
     )
   end
 
+  let(:factory) do
+    lambda do |value|
+      lambda do
+        validator.validate!(value, attribute, context)
+      end
+    end
+  end
+
   describe '#validate!' do
     it 'accepts nil if attribute is nullable' do
       allow(attribute).to receive(:nullable).and_return(true)
-      proc = lambda do
-        validator.validate!(nil, attribute, context)
-      end
-      expect(&proc).not_to raise_error
+      expect(&factory.call(nil)).not_to raise_error
     end
 
     it 'raises if attribute is not nullable but nil is received' do
-      proc = lambda do
-        validator.validate!(nil, attribute, context)
-      end
-      expect(&proc).to raise_error(validation_error_class)
+      expect(&factory.call(nil)).to raise_error(validation_error_class)
+    end
+
+    it 'raises if value is not instance of any type' do
+      allow(attribute.types.first).to receive(:instance?).and_return(false)
+      expect(&factory.call(:anything)).to raise_error(validation_error_class)
+    end
+
+    it 'accepts value if it is listed in acceptable values' do
+      allow(attribute).to receive(:values).and_return(%i[acceptable])
+      expect(&factory.call(:acceptable)).not_to raise_error
+    end
+
+    it 'raises if value is not listed in acceptable values' do
+      allow(attribute).to receive(:values).and_return(%i[acceptable])
+      expect(&factory.call(:rejectable)).to raise_error(validation_error_class)
+    end
+
+    it 'accepts value if it is specified as default value' do
+      allow(attribute).to receive(:default).and_return(:default)
+      expect(&factory.call(:default)).not_to raise_error
     end
   end
 end
