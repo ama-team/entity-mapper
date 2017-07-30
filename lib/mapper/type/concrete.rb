@@ -7,16 +7,12 @@ require_relative '../mixin/errors'
 require_relative '../mixin/reflection'
 require_relative 'attribute'
 require_relative 'parameter'
-require_relative '../api/wrapper/normalizer'
-require_relative '../api/wrapper/denormalizer'
-require_relative '../api/wrapper/enumerator'
-require_relative '../api/wrapper/injector'
-require_relative '../api/wrapper/factory'
 require_relative '../api/default/normalizer'
 require_relative '../api/default/denormalizer'
 require_relative '../api/default/enumerator'
 require_relative '../api/default/injector'
 require_relative '../api/default/factory'
+require_relative '../api/default/entity_validator'
 
 module AMA
   module Entity

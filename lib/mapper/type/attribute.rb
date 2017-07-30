@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require_relative '../api/default/attribute_validator'
 require_relative '../mixin/errors'
 
 module AMA
