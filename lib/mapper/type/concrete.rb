@@ -7,16 +7,12 @@ require_relative '../mixin/errors'
 require_relative '../mixin/reflection'
 require_relative 'attribute'
 require_relative 'parameter'
-require_relative '../api/wrapper/normalizer'
-require_relative '../api/wrapper/denormalizer'
-require_relative '../api/wrapper/enumerator'
-require_relative '../api/wrapper/injector'
-require_relative '../api/wrapper/factory'
 require_relative '../api/default/normalizer'
 require_relative '../api/default/denormalizer'
 require_relative '../api/default/enumerator'
 require_relative '../api/default/injector'
 require_relative '../api/default/factory'
+require_relative '../api/default/entity_validator'
 
 module AMA
   module Entity
@@ -39,26 +35,9 @@ module AMA
           # @!attribute attributes
           #   @return [Hash{Symbol, AMA::Entity::Mapper::Type::Attribute}]
           attr_accessor :attributes
-          # Normalizer proc that can be used to convert existing entity into
-          # basic data structure (Hash, String, or however entity should be
-          # represented).
-          #
-          # This proc may use passed block to invoke standard normalization
-          # operation on passed data, allowing fallback, pre- or post-editing.
-          #
-          # Arguments: input, context, target type, fallback-block
-          #
           # @!attribute normalizer
           #   @return [AMA::Entity::Mapper::API::Normalizer]
           attr_accessor :normalizer
-          # Denormalizer proc that can be used to convert basic data structure
-          # into entity.
-          #
-          # This proc may use passed block to invoke standard normalization
-          # operation on passed data, allowing fallback, pre- or post-editing.
-          #
-          # Arguments: input, context, target type, fallback-block
-          #
           # @!attribute denormalizer
           #   @return [AMA::Entity::Mapper::API::Denormalizer]
           attr_accessor :denormalizer
@@ -71,7 +50,11 @@ module AMA
           # @!attribute factory
           #   @return [AMA::Entity::Mapper::API::Factory]
           attr_accessor :factory
+          # @!attribute validator
+          #   @return [AMA::Entity::Mapper::API:EntityValidator]
+          attr_accessor :validator
 
+          # @param [Class, Module] klass
           def initialize(klass)
             @type = validate_type!(klass)
             @parameters = {}
@@ -79,6 +62,7 @@ module AMA
             %i[factory normalizer denormalizer enumerator injector].each do |h|
               send("#{h}=", API::Default.const_get(h.capitalize)::INSTANCE)
             end
+            self.validator = API::Default::EntityValidator::INSTANCE
           end
 
           # Tells if provided object is an instance of this type.
@@ -146,6 +130,10 @@ module AMA
             end
           end
 
+          def violations(object, context)
+            validator.validate(object, self, context)
+          end
+
           def factory_block(&block)
             self.factory = method_object(:create, &block)
           end
@@ -164,6 +152,10 @@ module AMA
 
           def injector_block(&block)
             self.injector = method_object(:inject, &block)
+          end
+
+          def validator_block(&block)
+            self.validator = method_object(:validate, &block)
           end
 
           def hash

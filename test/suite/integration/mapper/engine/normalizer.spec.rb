@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require_relative '../../../../lib/mapper/engine/normalizer'
-require_relative '../../../../lib/mapper/exception/mapping_error'
-require_relative '../../../../lib/mapper/context'
+require_relative '../../../../../lib/mapper/engine/normalizer'
+require_relative '../../../../../lib/mapper/exception/mapping_error'
+require_relative '../../../../../lib/mapper/context'
 
 klass = ::AMA::Entity::Mapper::Engine::Normalizer
 mapping_error_class = ::AMA::Entity::Mapper::Exception::MappingError

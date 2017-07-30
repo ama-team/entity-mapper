@@ -54,7 +54,29 @@ module AMA
           @resolver.resolve(definition)
         end
 
+        # Normalizes object to primitive data structures.
+        # @param [Object] object
+        # @param [Hash] context_options
+        def normalize(object, **context_options)
+          recursive_normalize(object, create_context(context_options))
+        end
+
         private
+
+        # @param [Object] object
+        # @param [AMA::Entity::Mapper::Context] context
+        # @return [Object]
+        def recursive_normalize(object, context)
+          data = @normalizer.normalize(object, find_type(source.class), context)
+          type = find_type(data)
+          target = type.factory.create(type, data, context)
+          type.enumerator.enumerate(data, type, context) do |attr, val, segment|
+            next_context = segment.nil? ? context : context.advance(segment)
+            val = recursive_normalize(val, next_context)
+            type.injector.inject(target, type, attr, val, next_context)
+          end
+          target
+        end
 
         # @return [AMA::Entity::Mapper::Engine::Context] context
         def create_context(options)
@@ -64,6 +86,10 @@ module AMA
             path: Path.new
           )
           Mapper::Context.new(**options)
+        end
+
+        def find_type(klass)
+          @registry.find(klass) || Type::Concrete.new(klass)
         end
 
         # @param [Object] source
@@ -84,21 +110,22 @@ module AMA
 
         # @param [Object] source
         # @param [AMA::Entity::Mapper::Type] type
-        # @param [AMA::Entity::Mapper::Engine::Context] context
-        def try_map(source, type, context)
-          return source if type.satisfied_by?(source)
-          result = reassemble(source, type, context)
-          return result if type.satisfied_by?(result)
-          result = map_attributes(result, type, context)
-          return result if type.satisfied_by?(result)
-          message = "Failed to map #{source.class} to type #{type}"
-          mapping_error(message, context: context)
+        # @param [AMA::Entity::Mapper::Engine::Context] ctx
+        def try_map(source, type, ctx)
+          source = reassemble(source, type, ctx) unless type.valid?(source, ctx)
+          result = map_attributes(source, type, ctx)
+          type.valid!(result, ctx)
+          result
         end
 
+        # Normalizes and then denormalizes entity
+        #
+        # @param [Object] source
+        # @param [AMA::Entity::Mapper::Type] type
+        # @param [AMA::Entity::Mapper::Engine::Context] context
         def reassemble(source, type, context)
           return source if type.instance?(source)
-          source_type = registry.find(source.class)
-          source_type ||= Type::Concrete.new(source.class)
+          source_type = find_type(source.class)
           normalized = @normalizer.normalize(source, source_type, context)
           result = @denormalizer.denormalize(normalized, type, context)
           type.instance!(result, context)
@@ -109,28 +136,31 @@ module AMA
         # @param [AMA::Entity::Mapper::Type] type
         # @param [AMA::Entity::Mapper::Engine::Context] context
         def map_attributes(entity, type, context)
+          changes = mutate_attributes(entity, type, context)
+          return entity if changes.select(&:first).empty?
           instance = type.factory.create(type, entity, context)
-          enumerator = type.enumerator.enumerate(entity, type, context)
-          enumerator.each do |attribute, value, segment = nil|
+          changes.map do |_, attribute, value, segment = nil|
             next_context = segment ? context.advance(segment) : context
-            unless attribute.satisfied_by?(value)
-              value = recursive_map(value, attribute.types, next_context)
-            end
             type.injector.inject(instance, type, attribute, value, next_context)
           end
           instance
         end
 
+        # Returns attributes in [mutated?, attr, value, segment] format
+        def mutate_attributes(entity, type, context)
+          enumerator = type.enumerator.enumerate(entity, type, context)
+          enumerator.map do |attr, value, segment = nil|
+            next [false, attr, value, segment] if value.nil? && attr.nullable
+            next_context = segment ? context.advance(segment) : context
+            mutated = recursive_map(value, attr.types, next_context)
+            [!value.equal?(mutated), attr, mutated, segment]
+          end
+        end
+
         def normalize_types(types, context)
-          if types.empty?
-            compliance_error('Requested map operation with no target types')
-          end
-          types = types.map do |type|
-            @resolver.resolve(type)
-          end
-          types.each do |type|
-            type.resolved!(context)
-          end
+          compliance_error('Called #map() with no types') if types.empty?
+          types = types.map { |type| @resolver.resolve(type) }
+          types.each { |type| type.resolved!(context) }
         end
       end
     end

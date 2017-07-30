@@ -3,6 +3,7 @@
 require_relative '../exception'
 require_relative '../exception/mapping_error'
 require_relative '../exception/compliance_error'
+require_relative '../exception/validation_error'
 
 module AMA
   module Entity
@@ -10,13 +11,16 @@ module AMA
       module Mixin
         # Simple mixin that provides shortcuts for raising common errors
         module Errors
-          error_types = %i[Mapping Compliance]
+          error_types = %i[Mapping Compliance Validation]
           error_namespace = ::AMA::Entity::Mapper::Exception
 
           # @!method mapping_error(message, **options)
           #   @param [String] message
 
           # @!method compliance_error(message, **options)
+          #   @param [String] message
+
+          # @!method validation_error(message, **options)
           #   @param [String] message
           error_types.each do |type|
             method = "#{type.to_s.downcase}_error"

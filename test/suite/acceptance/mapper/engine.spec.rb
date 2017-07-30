@@ -72,16 +72,16 @@ describe klass do
         :symbol => [Symbol],
         'String' => [String],
         { x: 12 } => [Hash, K: Symbol, V: Integer],
-        Class.new.new => [Class],
+        Class.new => [Class],
         false => [FalseClass],
         true => [TrueClass],
         nil => [NilClass],
         [:alpha, 'beta', 3] => [Enumerable, T: any_type],
         Set.new([:whoa]) => [Set, T: Symbol]
       }
-      candidates.each do |candidate|
-        it "should map #{candidate.inspect} to itself" do
-          expect(engine.map(candidate, candidate.class)).to equal(candidate)
+      candidates.each do |data, type|
+        it "should map #{data.inspect} to itself" do
+          expect(engine.map(data, type)).to equal(data)
         end
       end
     end

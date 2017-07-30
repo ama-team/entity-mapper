@@ -28,7 +28,10 @@ module AMA
           # @param [Hash] options Attribute options: :virtual, :sensitive
           # @return [AMA::Entity::Mapper::Type::Attribute]
           def attribute(name, *types, **options)
-            types = types.map { |type| @mapper.resolve(type) }
+            types = types.map do |type|
+              next parameter(type) if type.is_a?(Symbol) || type.is_a?(String)
+              @mapper.resolve(type)
+            end
             bound_type.attribute!(name, *types, **options)
             define_method(name) do
               instance_variable_get("@#{name}")

@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require_relative '../api/default/attribute_validator'
 require_relative '../mixin/errors'
 
 module AMA
@@ -19,22 +20,66 @@ module AMA
           # @!attribute types List of possible types attribute may take
           #   @return [Array<AMA::Entity::Mapper::Type>]
           attr_accessor :types
+          # If attribute is declared as virtual, it is omitted from all
+          # automatic actions, such enumeration, normalization and
+          # denormalization. Main motivation behind virtual attributes was
+          # collections problem: collection can't be represented as hash of
+          # attributes, however, virtual attribute may describe collection
+          # content.
+          #
           # @!attribute virtual
           #   @return [TrueClass, FalseClass]
           attr_accessor :virtual
+          # If set to true, this attribute will be omitted during normalization
+          # and won't be present in resulting structure.
+          #
           # @!attribute sensitive
           #   @return [TrueClass, FalseClass]
           attr_accessor :sensitive
+          # Default value that is set on automatic object creation.
+          #
           # @!attribute default
           #   @return [Object]
           attr_accessor :default
+          # Whether or not this attribute may be represented by null.
+          #
+          # @!attribute nullable
+          #   @return [TrueClass, FalseClass]
+          attr_accessor :nullable
+          # List of values this attribute acceptable to take. Part of automatic
+          # validation.
+          #
+          # @!attribute values
+          #   @return [Array<Object>]
+          attr_accessor :values
+          # Custom attribute validator
+          #
+          # @!attribute validator
+          #   @return [API::AttributeValidator]
+          attr_accessor :validator
 
+          def self.defaults
+            {
+              virtual: false,
+              sensitive: false,
+              default: nil,
+              nullable: false,
+              values: [],
+              validator: API::Default::AttributeValidator::INSTANCE
+            }
+          end
+
+          # @param [Mapper::Type::Concrete] owner
+          # @param [Symbol] name
+          # @param [Array<Mapper::Type>] types
+          # @param [Hash<Symbol, Object] options
           def initialize(owner, name, *types, **options)
             @owner = validate_owner!(owner)
             @name = validate_name!(name)
             @types = validate_types!(types)
-            @sensitive = options.fetch(:sensitive, false)
-            @virtual = options.fetch(:virtual, false)
+            self.class.defaults.each do |key, value|
+              instance_variable_set("@#{key}", options.fetch(key, value))
+            end
           end
 
           def satisfied_by?(value)

@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require_relative '../../../../lib/mapper/engine/denormalizer'
-require_relative '../../../../lib/mapper/exception/mapping_error'
-require_relative '../../../../lib/mapper/exception/compliance_error'
+require_relative '../../../../../lib/mapper/engine/denormalizer'
+require_relative '../../../../../lib/mapper/exception/mapping_error'
+require_relative '../../../../../lib/mapper/exception/compliance_error'
 
 klass = ::AMA::Entity::Mapper::Engine::Denormalizer
 mapping_error_class = ::AMA::Entity::Mapper::Exception::MappingError
