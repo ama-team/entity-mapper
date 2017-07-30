@@ -4,7 +4,6 @@ require_relative '../../../../../../lib/mapper/api/default/attribute_validator'
 require_relative '../../../../../../lib/mapper/exception/validation_error'
 
 klass = ::AMA::Entity::Mapper::API::Default::AttributeValidator
-validation_error_class = ::AMA::Entity::Mapper::Exception::ValidationError
 
 describe klass do
   let(:validator) do
@@ -30,40 +29,38 @@ describe klass do
 
   let(:factory) do
     lambda do |value|
-      lambda do
-        validator.validate!(value, attribute, context)
-      end
+      validator.validate(value, attribute, context)
     end
   end
 
-  describe '#validate!' do
+  describe '#validate' do
     it 'accepts nil if attribute is nullable' do
       allow(attribute).to receive(:nullable).and_return(true)
-      expect(&factory.call(nil)).not_to raise_error
+      expect(factory.call(nil)).to eq([])
     end
 
-    it 'raises if attribute is not nullable but nil is received' do
-      expect(&factory.call(nil)).to raise_error(validation_error_class)
+    it 'reports violation if attribute is not nullable but nil is received' do
+      expect(factory.call(nil)).not_to be_empty
     end
 
-    it 'raises if value is not instance of any type' do
+    it 'reports violation if value is not an instance of any type' do
       allow(attribute.types.first).to receive(:instance?).and_return(false)
-      expect(&factory.call(:anything)).to raise_error(validation_error_class)
+      expect(factory.call(:anything)).not_to be_empty
     end
 
     it 'accepts value if it is listed in acceptable values' do
       allow(attribute).to receive(:values).and_return(%i[acceptable])
-      expect(&factory.call(:acceptable)).not_to raise_error
+      expect(factory.call(:acceptable)).to be_empty
     end
 
-    it 'raises if value is not listed in acceptable values' do
+    it 'reports violation if value is not listed in acceptable values' do
       allow(attribute).to receive(:values).and_return(%i[acceptable])
-      expect(&factory.call(:rejectable)).to raise_error(validation_error_class)
+      expect(factory.call(:rejectable)).not_to be_empty
     end
 
     it 'accepts value if it is specified as default value' do
       allow(attribute).to receive(:default).and_return(:default)
-      expect(&factory.call(:default)).not_to raise_error
+      expect(factory.call(:default)).to be_empty
     end
   end
 end

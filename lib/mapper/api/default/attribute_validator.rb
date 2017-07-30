@@ -13,44 +13,50 @@ module AMA
 
             # @param [Object] value Attribute value
             # @param [AMA::Entity::Mapper::Type::Attribute] attribute
-            # @param [AMA::Entity::Mapper::Context] context
-            def validate!(value, attribute, context)
-              return if valid_nil?(value, attribute, context)
-              validate_type!(value, attribute, context)
-              return if value == attribute.default
-              validate_values!(value, attribute, context)
+            # @return [Array<String>] Single violation, list of violations
+            def validate(value, attribute, *)
+              violations = validate_internal(value, attribute)
+              violations.nil? ? [] : [violations]
+            end
+
+            private
+
+            def validate_internal(value, attribute)
+              if illegal_nil?(value, attribute)
+                return "Attribute #{attribute} could not be nil"
+              end
+              if invalid_type?(value, attribute)
+                return "Provided value #{value} doesn't conform to " \
+                  "any of attribute #{attribute} types (#{attribute.types})"
+              end
+              return unless illegal_value?(value, attribute)
+              "Provided value #{value} doesn't match default value (#{value})" \
+                " or any of allowed values (#{attribute.values})"
             end
 
             # @param [Object] value Attribute value
             # @param [AMA::Entity::Mapper::Type::Attribute] attribute
-            # @param [AMA::Entity::Mapper::Context] context
-            def valid_nil?(value, attribute, context)
-              return false unless value.nil?
-              return true if attribute.nullable
-              message = "Attribute #{attribute} could not be nil"
-              validation_error(message, context: context)
+            # @return [TrueClass, FalseClass]
+            def illegal_nil?(value, attribute)
+              value.nil? && !attribute.nullable
             end
 
             # @param [Object] value Attribute value
             # @param [AMA::Entity::Mapper::Type::Attribute] attribute
-            # @param [AMA::Entity::Mapper::Context] context
-            def validate_values!(value, attribute, context)
-              return if attribute.values.empty? || attribute.values.nil?
-              return if attribute.values.include?(value)
-              message = "Attribute #{attribute} doesn't conform to " \
-                'any of allowed values, expected one of: ' \
-                "#{attribute.values}, received: #{value}"
-              validation_error(message, context: context)
+            # @return [TrueClass, FalseClass]
+            def invalid_type?(value, attribute)
+              attribute.types.all? do |type|
+                !type.respond_to?(:instance?) || !type.instance?(value)
+              end
             end
 
             # @param [Object] value Attribute value
             # @param [AMA::Entity::Mapper::Type::Attribute] attribute
-            # @param [AMA::Entity::Mapper::Context] context
-            def validate_type!(value, attribute, context)
-              return if attribute.types.any? { |type| type.instance?(value) }
-              message = "Value #{value} doesn't conform to " \
-                "attribute #{attribute} type (#{attribute.types})"
-              validation_error(message, context: context)
+            # @return [TrueClass, FalseClass]
+            def illegal_value?(value, attribute)
+              return false if value == attribute.default
+              return false if attribute.values.empty? || attribute.values.nil?
+              !attribute.values.include?(value)
             end
           end
         end

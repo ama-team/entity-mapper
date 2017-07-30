@@ -26,7 +26,7 @@ describe klass do
       end
       expectation = [
         [type.attributes[:key], tuple.key, nil],
-        [type.attributes[:value], tuple.value, nil],
+        [type.attributes[:value], tuple.value, nil]
       ]
       expect(&proc).to yield_successive_args(*expectation)
     end

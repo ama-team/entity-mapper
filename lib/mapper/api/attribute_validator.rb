@@ -16,7 +16,8 @@ module AMA
           # @param [Object] value Attribute value
           # @param [Mapper::Type::Attribute] attribute
           # @param [Mapper::Context] context
-          def validate!(value, attribute, context)
+          # @return [Array<String>] List of violations
+          def validate(value, attribute, context)
             abstract_method
           end
           # :nocov:

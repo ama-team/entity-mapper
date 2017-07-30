@@ -5,18 +5,20 @@ require_relative '../../../../../../lib/mapper/api/default/entity_validator'
 klass = ::AMA::Entity::Mapper::API::Default::EntityValidator
 
 describe klass do
-  let(:attribute) do
-    double(
-      validator: double(validate!: nil)
-    )
+  let(:attributes) do
+    intermediate = %i[alpha beta].map do |name|
+      attribute = double(
+        validator: double(validate: [])
+      )
+      [name, attribute]
+    end
+    Hash[intermediate]
   end
 
   let(:type) do
     double(
       type: nil,
-      attributes: {
-        id: attribute
-      },
+      attributes: attributes,
       enumerator: double(enumerate: nil)
     )
   end
@@ -34,16 +36,29 @@ describe klass do
     )
   end
 
-  describe '#validate!' do
-    it 'just passes all the work to enumerator and attribute validators' do
-      enumerator = ::Enumerator.new do |y|
-        y << [attribute, nil, context]
-      end
+  describe '#validate' do
+    it 'just aggregates attribute validators output' do
       expect(type.enumerator).to(
-        receive(:enumerate).and_return(enumerator).exactly(:once)
+        receive(:enumerate) do
+          ::Enumerator.new do |y|
+            attributes.values.each do |attribute|
+              y << [attribute, nil, nil]
+            end
+          end
+        end
       )
-      expect(attribute.validator).to receive(:validate!).exactly(:once)
-      validator.validate!(double, type, context)
+      data = ['violation']
+      attributes.values.each do |attribute|
+        expect(attribute.validator).to(
+          receive(:validate).exactly(:once).and_return(data)
+        )
+      end
+      expectation = attributes.values.flat_map do |attribute|
+        data.map do |violation|
+          [attribute, violation, nil]
+        end
+      end
+      expect(validator.validate(double, type, context)).to eq(expectation)
     end
   end
 end

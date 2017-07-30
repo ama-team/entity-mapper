@@ -14,11 +14,17 @@ module AMA
             # @param [Object] entity
             # @param [Mapper::Type::Concrete] type
             # @param [Mapper::Context] context
-            def validate!(entity, type, context)
+            # @return [Array<Array<Attribute, String, Segment>] List of
+            #   violations, combined with attribute and segment
+            def validate(entity, type, context)
               enumerator = type.enumerator.enumerate(entity, type, context)
-              enumerator.each do |attribute, value, segment = nil|
+              enumerator.flat_map do |attribute, value, segment = nil|
                 next_context = segment.nil? ? context : context.advance(segment)
-                attribute.validator.validate!(value, attribute, next_context)
+                validator = attribute.validator
+                violations = validator.validate(value, attribute, next_context)
+                violations.map do |violation|
+                  [attribute, violation, segment]
+                end
               end
             end
           end

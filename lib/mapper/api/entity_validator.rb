@@ -14,7 +14,9 @@ module AMA
           # @param [Object] entity
           # @param [Mapper::Type::Concrete] type
           # @param [Mapper::Context] context
-          def validate!(entity, type, context)
+          # @return [Array<Array<Attribute, String, Segment>] List of
+          #   violations, combined with attribute and segment
+          def validate(entity, type, context)
             abstract_method
           end
           # :nocov:
