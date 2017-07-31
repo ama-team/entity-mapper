@@ -3,10 +3,10 @@
 require 'set'
 
 require_relative '../../../../../../lib/mapper/type/hardwired/set_type'
-require_relative '../../../../../../lib/mapper/exception/mapping_error'
+require_relative '../../../../../../lib/mapper/error/mapping_error'
 
 klass = ::AMA::Entity::Mapper::Type::Hardwired::SetType
-mapping_error_class = ::AMA::Entity::Mapper::Exception::MappingError
+mapping_error_class = ::AMA::Entity::Mapper::Error::MappingError
 type = klass::INSTANCE
 
 describe klass do

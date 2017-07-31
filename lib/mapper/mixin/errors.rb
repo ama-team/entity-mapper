@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require_relative '../exception'
-require_relative '../exception/mapping_error'
-require_relative '../exception/compliance_error'
-require_relative '../exception/validation_error'
+require_relative '../error'
+require_relative '../error/mapping_error'
+require_relative '../error/compliance_error'
+require_relative '../error/validation_error'
 
 module AMA
   module Entity
@@ -12,7 +12,7 @@ module AMA
         # Simple mixin that provides shortcuts for raising common errors
         module Errors
           error_types = %i[Mapping Compliance Validation]
-          error_namespace = ::AMA::Entity::Mapper::Exception
+          error_namespace = ::AMA::Entity::Mapper::Error
 
           # @!method mapping_error(message, **options)
           #   @param [String] message
@@ -47,7 +47,7 @@ module AMA
           # Raises error again if this is an internal error
           # @param [Exception] e
           def raise_if_internal(e)
-            raise e if e.is_a?(Mapper::Exception)
+            raise e if e.is_a?(Mapper::Error)
           end
         end
       end

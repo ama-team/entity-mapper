@@ -3,10 +3,10 @@
 # rubocop:disable Metrics/ParameterLists
 
 require_relative '../../../../../../lib/mapper/handler/entity/injector'
-require_relative '../../../../../../lib/mapper/exception/compliance_error'
+require_relative '../../../../../../lib/mapper/error/compliance_error'
 
 klass = ::AMA::Entity::Mapper::Handler::Entity::Injector
-compliance_error_class = ::AMA::Entity::Mapper::Exception::ComplianceError
+compliance_error_class = ::AMA::Entity::Mapper::Error::ComplianceError
 
 describe klass do
   let(:injector) do

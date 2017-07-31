@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
 require_relative '../../../../../lib/mapper/type'
-require_relative '../../../../../lib/mapper/exception/mapping_error'
-require_relative '../../../../../lib/mapper/exception/validation_error'
+require_relative '../../../../../lib/mapper/error/mapping_error'
+require_relative '../../../../../lib/mapper/error/validation_error'
 
 inspected_class = ::AMA::Entity::Mapper::Type
-validation_error_class = ::AMA::Entity::Mapper::Exception::ValidationError
+validation_error_class = ::AMA::Entity::Mapper::Error::ValidationError
 
 describe inspected_class do
   let(:klass) do

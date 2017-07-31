@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
 require_relative '../../../../../../lib/mapper/handler/entity/factory'
-require_relative '../../../../../../lib/mapper/exception/compliance_error'
-require_relative '../../../../../../lib/mapper/exception/mapping_error'
+require_relative '../../../../../../lib/mapper/error/compliance_error'
+require_relative '../../../../../../lib/mapper/error/mapping_error'
 
 klass = ::AMA::Entity::Mapper::Handler::Entity::Factory
-compliance_error_class = ::AMA::Entity::Mapper::Exception::ComplianceError
-mapping_error_class = ::AMA::Entity::Mapper::Exception::MappingError
+compliance_error_class = ::AMA::Entity::Mapper::Error::ComplianceError
+mapping_error_class = ::AMA::Entity::Mapper::Error::MappingError
 
 describe klass do
   let(:factory) do

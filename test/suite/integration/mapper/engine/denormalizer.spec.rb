@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
 require_relative '../../../../../lib/mapper/engine/denormalizer'
-require_relative '../../../../../lib/mapper/exception/mapping_error'
-require_relative '../../../../../lib/mapper/exception/compliance_error'
+require_relative '../../../../../lib/mapper/error/mapping_error'
+require_relative '../../../../../lib/mapper/error/compliance_error'
 
 klass = ::AMA::Entity::Mapper::Engine::Denormalizer
-mapping_error_class = ::AMA::Entity::Mapper::Exception::MappingError
-compliance_error_class = ::AMA::Entity::Mapper::Exception::ComplianceError
+mapping_error_class = ::AMA::Entity::Mapper::Error::MappingError
+compliance_error_class = ::AMA::Entity::Mapper::Error::ComplianceError
 
 describe klass do
   let(:denormalizer) do

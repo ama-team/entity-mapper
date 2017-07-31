@@ -3,8 +3,8 @@
 module AMA
   module Entity
     class Mapper
-      # Marker module to allow easy library exception processing
-      module Exception
+      # Marker module to allow easy library error processing
+      module Error
       end
     end
   end

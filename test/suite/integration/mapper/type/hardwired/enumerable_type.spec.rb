@@ -2,11 +2,11 @@
 
 require_relative '../../../../../../lib/mapper/type/hardwired/enumerable_type'
 require_relative '../../../../../../lib/mapper/path/segment'
-require_relative '../../../../../../lib/mapper/exception/mapping_error'
+require_relative '../../../../../../lib/mapper/error/mapping_error'
 
 klass = ::AMA::Entity::Mapper::Type::Hardwired::EnumerableType
 segment_class = ::AMA::Entity::Mapper::Path::Segment
-mapping_error_class = ::AMA::Entity::Mapper::Exception::MappingError
+mapping_error_class = ::AMA::Entity::Mapper::Error::MappingError
 
 describe klass do
   let(:type) do

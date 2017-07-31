@@ -7,14 +7,14 @@ require_relative '../../../../lib/mapper/type/any'
 require_relative '../../../../lib/mapper/type/hardwired/hash_type'
 require_relative '../../../../lib/mapper/type/hardwired/enumerable_type'
 require_relative '../../../../lib/mapper/type/hardwired/set_type'
-require_relative '../../../../lib/mapper/exception/compliance_error'
-require_relative '../../../../lib/mapper/exception/mapping_error'
+require_relative '../../../../lib/mapper/error/compliance_error'
+require_relative '../../../../lib/mapper/error/mapping_error'
 
 klass = ::AMA::Entity::Mapper::Engine
 type_class = ::AMA::Entity::Mapper::Type::Concrete
 registry_class = ::AMA::Entity::Mapper::Type::Registry
-compliance_error_class = ::AMA::Entity::Mapper::Exception::ComplianceError
-mapping_error_class = ::AMA::Entity::Mapper::Exception::MappingError
+compliance_error_class = ::AMA::Entity::Mapper::Error::ComplianceError
+mapping_error_class = ::AMA::Entity::Mapper::Error::MappingError
 any_type = ::AMA::Entity::Mapper::Type::Any::INSTANCE
 
 describe klass do

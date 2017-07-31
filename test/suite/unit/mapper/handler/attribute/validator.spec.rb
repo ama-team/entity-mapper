@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
 require_relative '../../../../../../lib/mapper/handler/attribute/validator'
-require_relative '../../../../../../lib/mapper/exception/compliance_error'
+require_relative '../../../../../../lib/mapper/error/compliance_error'
 
 klass = ::AMA::Entity::Mapper::Handler::Attribute::Validator
-compliance_error_class = ::AMA::Entity::Mapper::Exception::ComplianceError
+compliance_error_class = ::AMA::Entity::Mapper::Error::ComplianceError
 
 describe klass do
   let(:validator) do

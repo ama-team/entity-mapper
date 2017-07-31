@@ -3,10 +3,10 @@
 module AMA
   module Entity
     class Mapper
-      module Exception
+      module Error
         # Made to be thrown if validation fails
         class ValidationError < RuntimeError
-          include Exception
+          include Error
         end
       end
     end

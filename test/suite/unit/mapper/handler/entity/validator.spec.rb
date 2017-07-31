@@ -3,7 +3,7 @@
 require_relative '../../../../../../lib/mapper/handler/entity/validator'
 
 klass = ::AMA::Entity::Mapper::Handler::Entity::Validator
-compliance_error_class = ::AMA::Entity::Mapper::Exception::ComplianceError
+compliance_error_class = ::AMA::Entity::Mapper::Error::ComplianceError
 
 describe klass do
   let(:validator) do

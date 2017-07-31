@@ -3,11 +3,11 @@
 module AMA
   module Entity
     class Mapper
-      module Exception
-        # This exception is supposed to be thrown whenever end user provides
+      module Error
+        # This error is supposed to be thrown whenever end user provides
         # malformed input - too many types, not enough types, not a type, etc.
         class ComplianceError < RuntimeError
-          include Exception
+          include Error
         end
       end
     end

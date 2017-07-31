@@ -4,12 +4,12 @@ require_relative '../../../../../lib/mapper/type/resolver'
 require_relative '../../../../../lib/mapper/type/concrete'
 require_relative '../../../../../lib/mapper/type/registry'
 require_relative '../../../../../lib/mapper/type/any'
-require_relative '../../../../../lib/mapper/exception/compliance_error'
+require_relative '../../../../../lib/mapper/error/compliance_error'
 
 klass = ::AMA::Entity::Mapper::Type::Resolver
 type_class = ::AMA::Entity::Mapper::Type::Concrete
 registry_class = ::AMA::Entity::Mapper::Type::Registry
-compliance_error_class = ::AMA::Entity::Mapper::Exception::ComplianceError
+compliance_error_class = ::AMA::Entity::Mapper::Error::ComplianceError
 any_type = ::AMA::Entity::Mapper::Type::Any::INSTANCE
 
 describe klass do

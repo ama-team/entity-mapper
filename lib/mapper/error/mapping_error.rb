@@ -3,10 +3,10 @@
 module AMA
   module Entity
     class Mapper
-      module Exception
+      module Error
         # Made to be thrown whenever mapping can't be done
         class MappingError < RuntimeError
-          include Exception
+          include Error
         end
       end
     end
