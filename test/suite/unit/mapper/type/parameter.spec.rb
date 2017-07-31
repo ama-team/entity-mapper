@@ -11,9 +11,16 @@ describe klass do
     klass.new(double(type: Class.new), :id)
   end
 
+  let(:context) do
+    double(
+      path: nil,
+      advance: nil
+    )
+  end
+
   describe '#satisfied_by?' do
     it 'should return false for anything' do
-      expect(dummy.satisfied_by?(nil)).to be false
+      expect(dummy.satisfied_by?(nil, context)).to be false
     end
   end
 

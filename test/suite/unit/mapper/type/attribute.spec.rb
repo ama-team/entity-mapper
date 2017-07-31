@@ -29,6 +29,13 @@ describe klass do
     )
   end
 
+  let(:context) do
+    double(
+      path: nil,
+      advance: nil
+    )
+  end
+
   describe '#eql?' do
     it 'should return true if owners and names match' do
       instances = Array.new(2) do
@@ -124,7 +131,7 @@ describe klass do
     it 'should pass call through onto types' do
       expect(type).to receive(:satisfied_by?).at_least(:once)
       attribute = klass.new(type, :id, type)
-      expect(attribute.satisfied_by?(double)).to be true
+      expect(attribute.satisfied_by?(double, context)).to be true
     end
   end
 end

@@ -118,7 +118,7 @@ module AMA
 
         # :nocov:
         # @deprecated
-        def satisfied_by?(object)
+        def satisfied_by?(object, context)
           abstract_method
         end
 

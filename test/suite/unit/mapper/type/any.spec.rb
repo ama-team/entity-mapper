@@ -7,6 +7,13 @@ klass = ::AMA::Entity::Mapper::Type::Any
 compliance_error_class = ::AMA::Entity::Mapper::Exception::ComplianceError
 
 describe klass do
+  let(:context) do
+    double(
+      path: nil,
+      advance: nil
+    )
+  end
+
   describe '#eql?' do
     it 'should be equal to other Any type' do
       expect(klass.new).to eq(klass.new)
@@ -36,7 +43,7 @@ describe klass do
 
   describe '#satisfied_by?' do
     it 'should return true for any #satisfied_by? call' do
-      expect(klass.new.satisfied_by?(true)).to be true
+      expect(klass.new.satisfied_by?(true, context)).to be true
     end
   end
 

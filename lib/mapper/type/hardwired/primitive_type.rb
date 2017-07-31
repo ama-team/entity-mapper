@@ -35,7 +35,7 @@ module AMA
 
             def default_denormalizer(methods)
               lambda do |input, type, context = nil|
-                break input if type.satisfied_by?(input)
+                break input if type.satisfied_by?(input, context)
                 candidate = methods.reduce(nil) do |carrier, method|
                   next carrier if carrier || !input.respond_to?(method)
                   input.send(method)

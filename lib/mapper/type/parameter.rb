@@ -34,6 +34,14 @@ module AMA
             end
           end
 
+          def instance?(_)
+            false
+          end
+
+          def satisfied_by?(_, _)
+            false
+          end
+
           def resolve_parameter(*)
             self
           end

@@ -58,6 +58,13 @@ describe klass do
     end
   end
 
+  let(:context) do
+    double(
+      path: nil,
+      advance: nil
+    )
+  end
+
   describe '#resolve' do
     it 'should create new resolved type on call' do
       type = parametrized
@@ -138,7 +145,7 @@ describe klass do
       specimen = dummy_class.new
       specimen.id = :symbol
       proc = lambda do |handler|
-        type.enumerator.enumerate(specimen, type).each(&handler)
+        type.enumerator.enumerate(specimen, type, context).each(&handler)
       end
       args = [type.attributes[:id], specimen.id, anything]
       expect(&proc).to yield_with_args(args)
@@ -193,7 +200,7 @@ describe klass do
       input = double(is_a?: false)
       expect(type).to receive(:instance?).and_call_original
       expect(type).not_to receive(:enumerator)
-      expect(type.satisfied_by?(input)).to be false
+      expect(type.satisfied_by?(input, context)).to be false
     end
 
     it 'passes call to all attributes using enumerator call' do
@@ -206,7 +213,7 @@ describe klass do
       attribute = type.attribute!(:value, dummy_class)
       expect(type).to receive(:instance?).and_call_original
       expect(attribute).to receive(:satisfied_by?).and_return(false)
-      expect(type.satisfied_by?(input)).to be false
+      expect(type.satisfied_by?(input, context)).to be false
     end
   end
 end

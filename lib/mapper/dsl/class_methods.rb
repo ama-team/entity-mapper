@@ -1,6 +1,12 @@
 # frozen_string_literal: true
 
 require_relative '../mixin/reflection'
+require_relative '../handler/entity/factory'
+require_relative '../handler/entity/enumerator'
+require_relative '../handler/entity/injector'
+require_relative '../handler/entity/normalizer'
+require_relative '../handler/entity/denormalizer'
+require_relative '../handler/entity/validator'
 
 module AMA
   module Entity
@@ -52,12 +58,13 @@ module AMA
             enumerator: :enumerate,
             injector: :inject,
             normalizer: :normalize,
-            denormalizer: :denormalize
+            denormalizer: :denormalize,
+            validator: :validate
           }
           handlers.each do |name, method_name|
             setter_name = "#{name}="
             define_method setter_name do |handler|
-              wrapper = API::Wrapper.const_get(name.capitalize).new(handler)
+              wrapper = Handler::Entity.const_get(name.capitalize).wrap(handler)
               bound_type.send(setter_name, wrapper)
             end
 

@@ -7,12 +7,12 @@ require_relative '../mixin/errors'
 require_relative '../mixin/reflection'
 require_relative 'attribute'
 require_relative 'parameter'
-require_relative '../api/default/normalizer'
-require_relative '../api/default/denormalizer'
-require_relative '../api/default/enumerator'
-require_relative '../api/default/injector'
-require_relative '../api/default/factory'
-require_relative '../api/default/entity_validator'
+require_relative '../handler/entity/normalizer'
+require_relative '../handler/entity/denormalizer'
+require_relative '../handler/entity/enumerator'
+require_relative '../handler/entity/injector'
+require_relative '../handler/entity/factory'
+require_relative '../handler/entity/validator'
 
 module AMA
   module Entity
@@ -51,7 +51,7 @@ module AMA
           #   @return [AMA::Entity::Mapper::API::Factory]
           attr_accessor :factory
           # @!attribute validator
-          #   @return [AMA::Entity::Mapper::API:EntityValidator]
+          #   @return [AMA::Entity::Mapper::API:Validator]
           attr_accessor :validator
 
           # @param [Class, Module] klass
@@ -59,10 +59,12 @@ module AMA
             @type = validate_type!(klass)
             @parameters = {}
             @attributes = {}
-            %i[factory normalizer denormalizer enumerator injector].each do |h|
-              send("#{h}=", API::Default.const_get(h.capitalize)::INSTANCE)
+            handlers = %i[
+              factory normalizer denormalizer enumerator injector validator
+            ]
+            handlers.each do |h|
+              send("#{h}=", Handler::Entity.const_get(h.capitalize)::INSTANCE)
             end
-            self.validator = API::Default::EntityValidator::INSTANCE
           end
 
           # Tells if provided object is an instance of this type.
@@ -79,10 +81,10 @@ module AMA
           #
           # @param [Object] object
           # @return [TrueClass, FalseClass]
-          def satisfied_by?(object)
+          def satisfied_by?(object, context)
             return false unless instance?(object)
-            enumerator.enumerate(object, self).all? do |attribute, value, *|
-              attribute.satisfied_by?(value)
+            enumerator.enumerate(object, self, context).all? do |attr, value, *|
+              attr.satisfied_by?(value, context)
             end
           end
 

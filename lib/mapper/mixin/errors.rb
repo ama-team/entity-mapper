@@ -27,11 +27,16 @@ module AMA
             error_class = error_namespace.const_get("#{type}Error")
             define_method method do |message, parent_error = nil, **options|
               # TODO: deprecate parent_error parameter
-              parent_error = options[:parent] unless parent_error
+              parent_error = options[:parent]
               if options[:context]
                 message += " (path: #{options[:context].path})"
               end
               unless parent_error.nil?
+                if options[:signature] && parent_error.is_a?(ArgumentError)
+                  message += '.' if /\w$/ =~ message
+                  message += ' Does called method have signature ' \
+                    "#{options[:signature]}?"
+                end
                 message += '.' if /\w$/ =~ message
                 message += " Parent error: #{parent_error.message}"
               end

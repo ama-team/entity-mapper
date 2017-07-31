@@ -10,13 +10,6 @@ module AMA
         module Reflection
           include Errors
 
-          def set_object_attributes(object, values)
-            values.each do |attribute, value|
-              set_object_attribute(object, attribute, value)
-            end
-            object
-          end
-
           # @param [Object] object
           # @param [String, Symbol] name
           # @param [Object] value
@@ -54,8 +47,16 @@ module AMA
             object
           end
 
-          def method_object(method, &handler)
-            install_object_method(Object.new, method, handler)
+          def method_object(method, to_s: nil, &handler)
+            object = install_object_method(Object.new, method, handler)
+            unless to_s
+              to_s = "Wrapper object for proc #{handler} " \
+                "(installed as method #{method})"
+            end
+            object.define_singleton_method(:to_s) do
+              to_s
+            end
+            object
           end
         end
       end

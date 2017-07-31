@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative '../api/default/attribute_validator'
+require_relative '../handler/attribute/validator'
 require_relative '../mixin/errors'
 
 module AMA
@@ -65,7 +65,7 @@ module AMA
               default: nil,
               nullable: false,
               values: [],
-              validator: API::Default::AttributeValidator::INSTANCE
+              validator: Handler::Attribute::Validator::INSTANCE
             }
           end
 
@@ -80,10 +80,29 @@ module AMA
             self.class.defaults.each do |key, value|
               instance_variable_set("@#{key}", options.fetch(key, value))
             end
+            return unless options.key?(:validator)
+            validator = options[:validator]
+            self.validator = Handler::Attribute::Validator.wrap(validator)
           end
 
-          def satisfied_by?(value)
-            @types.any? { |type| type.satisfied_by?(value) }
+          def violations(value, context)
+            validator.validate(value, self, context)
+          end
+
+          def valid?(value, context)
+            violations(value, context).empty?
+          end
+
+          def valid!(value, context)
+            violations = self.violations(value, context)
+            return if violations.empty?
+            repr = violations.join(', ')
+            message = "Attribute #{self} has failed validation: #{repr}"
+            validation_error(message, context: context)
+          end
+
+          def satisfied_by?(value, context)
+            @types.any? { |type| type.satisfied_by?(value, context) }
           end
 
           def resolved?
@@ -91,9 +110,7 @@ module AMA
           end
 
           def resolved!(context = nil)
-            types.each do |type|
-              type.resolved!(context)
-            end
+            types.each { |type| type.resolved!(context) }
           end
 
           # @param [AMA::Entity::Mapper::Type] parameter
@@ -127,8 +144,7 @@ module AMA
 
           def to_s
             message = "Attribute #{owner.type}.#{name}"
-            return message unless virtual
-            "#{message} (virtual)"
+            virtual ? "#{message} (virtual)" : message
           end
 
           private
