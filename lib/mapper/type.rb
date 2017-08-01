@@ -146,15 +146,15 @@ module AMA
         end
 
         # rubocop:enable Metrics/LineLength
-        
+
         def violations(object, context)
           validator.validate(object, self, context)
         end
-        
+
         def valid?(object, context)
           violations(object, context).empty?
         end
-        
+
         def valid!(object, context)
           violations = self.violations(object, context)
           return if violations.empty?

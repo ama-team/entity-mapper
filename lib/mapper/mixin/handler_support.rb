@@ -6,6 +6,8 @@ module AMA
   module Entity
     class Mapper
       module Mixin
+        # This module provides Type and Attribute classes with shortcut
+        # handler :name, :method method to register handlers
         module HandlerSupport
           class << self
             def included(klass)

@@ -3,3 +3,5 @@ AllCops:
   DisplayStyleGuide: true
 Metrics/MethodLength:
   Max: 15
+Layout/MultilineMethodCallIndentation:
+  Enabled: false
