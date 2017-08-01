@@ -28,6 +28,10 @@ describe klass do
     )
   end
 
+  let(:type) do
+    double(instance?: true)
+  end
+
   let(:context) do
     double(path: nil)
   end
@@ -38,7 +42,12 @@ describe klass do
       expect(validator.validate(nil, attribute, context)).to eq([])
     end
 
+    it 'accepts nil for attribute with NilClass type' do
+      expect(validator.validate(nil, attribute, context)).to eq([])
+    end
+
     it 'reports violation for nil value of non-nullable attribute' do
+      allow(attribute.types.first).to receive(:instance?).and_return(false)
       expect(validator.validate(nil, attribute, context)).not_to be_empty
     end
 

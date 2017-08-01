@@ -11,7 +11,7 @@ module AMA
           # Pair class definition
           class HashTupleType < Type
             def initialize
-              super(Aux::HashTuple)
+              super(Aux::HashTuple, virtual: true)
 
               attribute!(:key, parameter!(:K))
               attribute!(:value, parameter!(:V))

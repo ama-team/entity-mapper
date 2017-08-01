@@ -146,17 +146,17 @@ describe klass do
     end
   end
 
-  describe '#include?' do
+  describe '#resolvable?' do
     it 'should return true for registered class' do
-      expect(registry.include?(bottom)).to be(true)
+      expect(registry.resolvable?(bottom)).to be(true)
     end
 
     it 'should return true for class having registered ancestor' do
-      expect(registry.include?(unregistered_descendant)).to be(true)
+      expect(registry.resolvable?(unregistered_descendant)).to be(true)
     end
 
     it 'should return false for class that doesn\'t have any registered ancestors' do
-      expect(registry.include?(Class.new)).to be(false)
+      expect(registry.resolvable?(Class.new)).to be(false)
     end
   end
 end

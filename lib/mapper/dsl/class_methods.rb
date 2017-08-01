@@ -7,6 +7,7 @@ require_relative '../handler/entity/injector'
 require_relative '../handler/entity/normalizer'
 require_relative '../handler/entity/denormalizer'
 require_relative '../handler/entity/validator'
+require_relative '../type'
 
 module AMA
   module Entity
@@ -16,16 +17,16 @@ module AMA
         module ClassMethods
           include Mixin::Reflection
 
-          attr_reader :mapper
+          attr_reader :engine
 
-          def mapper=(mapper)
-            @mapper = mapper
-            mapper.register(self)
+          def engine=(engine)
+            @engine = engine
+            engine.register(self)
           end
 
           # @return [AMA::Entity::Mapper::Type]
           def bound_type
-            mapper[self]
+            @engine[self]
           end
 
           # @param [String, Symbol] name
@@ -36,7 +37,7 @@ module AMA
           def attribute(name, *types, **options)
             types = types.map do |type|
               next parameter(type) if type.is_a?(Symbol) || type.is_a?(String)
-              @mapper.resolve(type)
+              @engine.resolve(type)
             end
             bound_type.attribute!(name, *types, **options)
             define_method(name) do

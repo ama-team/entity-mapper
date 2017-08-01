@@ -12,7 +12,7 @@ module AMA
             klass.singleton_class.instance_eval do
               include ClassMethods
             end
-            klass.mapper = Mapper.handler
+            klass.engine = Mapper.engine
           end
         end
       end

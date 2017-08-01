@@ -3,6 +3,7 @@
 require 'rspec'
 require 'allure-rspec'
 require 'coveralls'
+require 'tempfile'
 
 module AMA
   module Entity
@@ -21,6 +22,8 @@ module AMA
                   config.expect_with :rspec do |c|
                     c.syntax = :expect
                   end
+
+                  setup_context(config)
 
                   configure_allure(config, test_type)
 
@@ -72,6 +75,41 @@ module AMA
                 ::AllureRSpec.configure do |allure|
                   allure.output_dir = metadata_path('allure', test_type)
                   allure.logging_level = Logger::INFO
+                end
+              end
+
+              def setup_context(config)
+                config.include(shared_module)
+                config.after(:each) do |example|
+                  ::AMA::Entity::Mapper.engine = nil
+                  begin
+                    unless logger_io.size.zero?
+                      options = { mime_type: 'text/plain' }
+                      example.attach_file('output.log', logger_io, **options)
+                    end
+                  rescue StandardError => e
+                    puts "Unexpected error while saving Allure attachment: #{e}"
+                  ensure
+                    logger_io.close(true)
+                  end
+                end
+              end
+
+              def shared_module
+                Module.new do
+                  def self.included(example_group)
+                    example_group.let(:logger_io) do
+                      Tempfile.new
+                    end
+                    example_group.let(:logger) do
+                      Logger.new(logger_io)
+                    end
+                    example_group.let(:ctx) do
+                      ctx = double(path: nil, logger: logger)
+                      allow(ctx).to receive(:advance).and_return(ctx)
+                      ctx
+                    end
+                  end
                 end
               end
             end

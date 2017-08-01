@@ -33,6 +33,9 @@ module AMA
         # @!attribute attributes
         #   @return [Hash{Symbol, AMA::Entity::Mapper::Type::Attribute}]
         attr_accessor :attributes
+        # @!attribute virtual
+        #   @return [TrueClass, FalseClass]
+        attr_accessor :virtual
 
         handler_namespace Handler::Entity
 
@@ -56,10 +59,11 @@ module AMA
         handler :validator, :validate
 
         # @param [Class, Module] klass
-        def initialize(klass)
+        def initialize(klass, virtual: false)
           @type = validate_type!(klass)
           @parameters = {}
           @attributes = {}
+          @virtual = virtual
         end
 
         # Tells if provided object is an instance of this type.

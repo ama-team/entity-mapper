@@ -47,7 +47,7 @@ describe klass do
     it 'passes call to attributes' do
       expect(attribute).to receive(:resolved!).exactly(:once)
       proc = lambda do
-        default.resolved!
+        default.resolved!(context)
       end
       expect(&proc).not_to raise_error
     end

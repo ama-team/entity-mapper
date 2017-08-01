@@ -17,8 +17,8 @@ module AMA
             # @param [AMA::Entity::Mapper::Context] _context
             # @return [Array<String>] Single violation, list of violations
             def validate(value, attribute, _context)
-              violations = validate_internal(value, attribute)
-              violations.nil? ? [] : [violations]
+              violation = validate_internal(value, attribute)
+              violation.nil? ? [] : [violation]
             end
 
             private
@@ -28,11 +28,11 @@ module AMA
                 return "Attribute #{attribute} could not be nil"
               end
               if invalid_type?(value, attribute)
-                return "Provided value #{value} doesn't conform to " \
+                return "Provided value doesn't conform to " \
                   "any of attribute #{attribute} types (#{attribute.types})"
               end
               return unless illegal_value?(value, attribute)
-              "Provided value #{value} doesn't match default value (#{value})" \
+              "Provided value doesn't match default value (#{value})" \
                 " or any of allowed values (#{attribute.values})"
             end
 
@@ -40,7 +40,8 @@ module AMA
             # @param [AMA::Entity::Mapper::Type::Attribute] attribute
             # @return [TrueClass, FalseClass]
             def illegal_nil?(value, attribute)
-              value.nil? && !attribute.nullable
+              return false unless value.nil? && !attribute.nullable
+              attribute.types.none? { |type| type.instance?(value) }
             end
 
             # @param [Object] value Attribute value

@@ -3,6 +3,7 @@
 require_relative '../mixin/errors'
 require_relative 'parameter'
 require_relative 'hardwired/enumerable_type'
+require_relative 'hardwired/array_type'
 require_relative 'hardwired/hash_type'
 require_relative 'hardwired/hash_tuple_type'
 require_relative 'hardwired/set_type'
@@ -25,6 +26,7 @@ module AMA
           # @return [AMA::Entity::Mapper::Type::Registry]
           def with_default_types
             register(Hardwired::EnumerableType::INSTANCE)
+            register(Hardwired::ArrayType::INSTANCE)
             register(Hardwired::HashType::INSTANCE)
             register(Hardwired::SetType::INSTANCE)
             register(Hardwired::HashTupleType::INSTANCE)
@@ -37,12 +39,6 @@ module AMA
           # @param [Class, Module] klass
           def [](klass)
             @types[klass]
-          end
-
-          # @param [AMA::Entity::Mapper::Type] type
-          # @param [Class, Module] klass
-          def []=(klass, type)
-            @types[klass] = type
           end
 
           # @param [AMA::Entity::Mapper::Type] type
@@ -84,7 +80,7 @@ module AMA
 
           # @param [Class, Module] klass
           # @return [TrueClass, FalseClass]
-          def include?(klass)
+          def resolvable?(klass)
             !select(klass).empty?
           end
 

@@ -33,8 +33,8 @@ module AMA
             self
           end
 
-          def instance?(*)
-            true
+          def instance?(object, *)
+            !object.nil?
           end
 
           def hash

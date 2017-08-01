@@ -18,10 +18,6 @@ factory = lambda do |name, &block|
 end
 
 describe klass do
-  before(:each) do
-    klass.handler = klass.new
-  end
-
   let(:public_key) do
     factory.call('PublicKey') do
       attribute :id, Symbol
