@@ -56,6 +56,10 @@ module AMA
               NilClass => []
             }
 
+            # rubocop:disable Lint/UnifiedInteger
+            primitives[Fixnum] = %i[to_i] if defined?(Fixnum)
+            # rubocop:enable Lint/UnifiedInteger
+
             ALL = primitives.map do |klass, methods|
               const_set(klass.to_s.upcase, new(klass, *methods))
             end
