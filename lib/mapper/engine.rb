@@ -3,9 +3,9 @@
 require_relative 'path'
 require_relative 'context'
 require_relative 'mixin/errors'
+require_relative 'type'
 require_relative 'type/registry'
 require_relative 'type/resolver'
-require_relative 'type/concrete'
 require_relative 'engine/normalizer'
 require_relative 'engine/denormalizer'
 
@@ -33,7 +33,7 @@ module AMA
         end
 
         # @param [Object] source
-        # @param [Array<AMA::Entity::Mapper::Type::Concrete>] types
+        # @param [Array<AMA::Entity::Mapper::Type>] types
         # @param [Hash] context_options
         def map(source, *types, **context_options)
           context = create_context(context_options)
@@ -42,9 +42,9 @@ module AMA
             recursive_map(source, types, context)
           rescue StandardError => e
             message = "Failed to map #{source.class} " \
-              "to any of provided types (#{types.map(&:to_s).join(', ')}). " \
+              "to any of provided types (#{types.map(&:to_def).join(', ')}). " \
               "Last error: #{e.message}"
-            mapping_error(message, context: context)
+            mapping_error(message)
           end
         end
 
@@ -89,7 +89,7 @@ module AMA
         end
 
         def find_type(klass)
-          @registry.find(klass) || Type::Concrete.new(klass)
+          @registry.find(klass) || Type.new(klass)
         end
 
         # @param [Object] source

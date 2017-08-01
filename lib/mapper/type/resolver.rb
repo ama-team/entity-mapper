@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 require_relative '../mixin/errors'
+require_relative '../type'
 require_relative 'parameter'
-require_relative 'concrete'
 
 module AMA
   module Entity
@@ -67,9 +67,9 @@ module AMA
           end
 
           def find_type(type)
-            return type if type.is_a?(Concrete)
+            return type if type.is_a?(Type)
             if type.is_a?(Class) || type.is_a?(Module)
-              return @registry[type] || Concrete.new(type)
+              return @registry[type] || Type.new(type)
             end
             message = 'Invalid type provided for resolution, expected Type, ' \
               "Class or Module: #{type}"
@@ -93,7 +93,7 @@ module AMA
                 '(Symbol expected)'
               compliance_error(message)
             end
-            return type.parameters[parameter] if type.parameter?(parameter)
+            return type.parameters[parameter] if type.parameters.key?(parameter)
             message = "Type #{type} has no requested parameter #{parameter}"
             compliance_error(message)
           end

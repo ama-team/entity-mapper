@@ -10,32 +10,10 @@ describe klass do
     klass::INSTANCE
   end
 
-  let(:attributes) do
-    {
-      id: double(
-        name: :id,
-        virtual: false,
-        validator: double(validate: [])
-      ),
-      virtual: double(
-        name: :virtual,
-        virtual: true,
-        validator: double(validate: ['violation'])
-      )
-    }
-  end
-
   let(:type) do
     double(
-      type: double,
-      attributes: attributes,
-      enumerator: double(
-        enumerate: ::Enumerator.new do |y|
-          attributes.values.each do |a|
-            y << [a, nil, double]
-          end
-        end
-      )
+      type: nil,
+      instance?: true
     )
   end
 
@@ -55,14 +33,13 @@ describe klass do
   end
 
   describe '#validate' do
-    it 'passes all the work onto attribute validators' do
-      expect(attributes[:id].validator).to receive(:validate).and_return([])
+    it 'returns no violations if #instance? check passes' do
       expect(validator.validate(double, type, context)).to eq([])
     end
 
-    it 'omits virtual attributes' do
-      expect(attributes[:virtual].validator).not_to receive(:validate)
-      expect(validator.validate(double, type, context)).to eq([])
+    it 'reports if #instance? check fails' do
+      expect(type).to receive(:instance?).and_return(false)
+      expect(validator.validate(double, type, context)).to_not be_empty
     end
   end
 
@@ -72,17 +49,11 @@ describe klass do
     end
 
     it 'provides fallback-block' do
-      violation = 'violation'
-      expect(attributes[:id].validator).to(
-        receive(:validate).and_return([violation])
-      )
+      expect(type).to receive(:instance?).and_return(false)
       expect(mock).to receive(:validate) do |e, t, c, &block|
         block.call(e, t, c)
       end
-      expectation = [attributes[:id], violation]
-      result = wrapped.validate(double, type, context)
-      expect(result).not_to be_empty
-      expect(result.first[0..1]).to eq(expectation)
+      expect(wrapped.validate(double, type, context)).not_to be_empty
     end
 
     it 'passes through internal errors' do

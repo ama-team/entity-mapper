@@ -15,11 +15,17 @@ describe klass do
     klass::INSTANCE
   end
 
+  let(:context) do
+    context = double(path: double(current: nil))
+    allow(context).to receive(:advance).and_return(context)
+    context
+  end
+
   describe '#enumerator' do
     it 'should correctly enumerate provided hash' do
       source = { id: 12 }
       proc = lambda do |block|
-        type.enumerator.enumerate(source, type).each(&block)
+        type.enumerator.enumerate(source, type, context).each(&block)
       end
       tuple = tuple_class.new(key: :id, value: 12)
       attribute = type.attributes[:_tuple]
@@ -42,7 +48,7 @@ describe klass do
   describe '#denormalizer' do
     it 'should return denormalizer capable to denormalize hashes' do
       data = { x: 12 }
-      expect(type.denormalizer.denormalize(data, type)).to eq(data)
+      expect(type.denormalizer.denormalize(data, type, context)).to eq(data)
     end
 
     it 'should return denormalizer capable to denormalize :to_h result' do
@@ -51,12 +57,12 @@ describe klass do
       source.define_singleton_method(:to_h) do
         data
       end
-      expect(type.denormalizer.denormalize(source, type)).to eq(data)
+      expect(type.denormalizer.denormalize(source, type, context)).to eq(data)
     end
 
     it 'should return denormalizer intolerant to non-hash input' do
       proc = lambda do
-        type.denormalizer.denormalize(double, type)
+        type.denormalizer.denormalize(double, type, context)
       end
       expect(&proc).to raise_error(mapping_error_class)
     end
@@ -65,7 +71,7 @@ describe klass do
   describe '#normalizer' do
     it 'should return pass-through normalizer' do
       data = { x: 12 }
-      expect(type.normalizer.normalize(data, type)).to eq(data)
+      expect(type.normalizer.normalize(data, type, context)).to eq(data)
     end
   end
 end

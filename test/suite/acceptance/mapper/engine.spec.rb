@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 require_relative '../../../../lib/mapper/engine'
+require_relative '../../../../lib/mapper/type'
 require_relative '../../../../lib/mapper/type/registry'
-require_relative '../../../../lib/mapper/type/concrete'
 require_relative '../../../../lib/mapper/type/any'
 require_relative '../../../../lib/mapper/type/hardwired/hash_type'
 require_relative '../../../../lib/mapper/type/hardwired/enumerable_type'
@@ -11,7 +11,7 @@ require_relative '../../../../lib/mapper/error/compliance_error'
 require_relative '../../../../lib/mapper/error/mapping_error'
 
 klass = ::AMA::Entity::Mapper::Engine
-type_class = ::AMA::Entity::Mapper::Type::Concrete
+type_class = ::AMA::Entity::Mapper::Type
 registry_class = ::AMA::Entity::Mapper::Type::Registry
 compliance_error_class = ::AMA::Entity::Mapper::Error::ComplianceError
 mapping_error_class = ::AMA::Entity::Mapper::Error::MappingError

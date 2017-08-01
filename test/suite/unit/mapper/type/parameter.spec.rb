@@ -18,12 +18,6 @@ describe klass do
     )
   end
 
-  describe '#satisfied_by?' do
-    it 'should return false for anything' do
-      expect(dummy.satisfied_by?(nil, context)).to be false
-    end
-  end
-
   describe '#instance?' do
     it 'should return false for anything' do
       expect(dummy.instance?(nil)).to be false
@@ -69,6 +63,12 @@ describe klass do
         klass.new(double(type: Class.new), :value).resolved!
       end
       expect(&proc).to raise_error(compliance_error_class)
+    end
+  end
+
+  describe '#to_def' do
+    it 'returns consistent definition' do
+      expect(klass.new(double(type: :A), :id).to_def).to eq('A.id')
     end
   end
 end

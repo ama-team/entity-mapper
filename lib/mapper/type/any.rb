@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative 'concrete'
+require_relative '../type'
 require_relative '../mixin/errors'
 
 module AMA
@@ -8,7 +8,7 @@ module AMA
     class Mapper
       class Type
         # Used as a wildcard to pass anything through
-        class Any < Concrete
+        class Any < Type
           include Mixin::Errors
 
           def initialize
@@ -37,10 +37,6 @@ module AMA
             true
           end
 
-          def violations(*)
-            []
-          end
-
           def hash
             self.class.hash
           end
@@ -54,6 +50,10 @@ module AMA
           end
 
           def to_s
+            'Any Type'
+          end
+
+          def to_def
             '*'
           end
         end

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative '../concrete'
+require_relative '../../type'
 require_relative '../aux/hash_tuple'
 
 module AMA
@@ -9,7 +9,7 @@ module AMA
       class Type
         module Hardwired
           # Pair class definition
-          class HashTupleType < Concrete
+          class HashTupleType < Type
             def initialize
               super(Aux::HashTuple)
 

@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
 require_relative '../../../../../lib/mapper/type/registry'
-require_relative '../../../../../lib/mapper/type/concrete'
+require_relative '../../../../../lib/mapper/type'
 
 klass = ::AMA::Entity::Mapper::Type::Registry
-type_class = ::AMA::Entity::Mapper::Type::Concrete
+type_class = ::AMA::Entity::Mapper::Type
 
 describe klass do
   let(:registry) do

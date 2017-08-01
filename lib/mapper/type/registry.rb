@@ -1,7 +1,6 @@
 # frozen_String_literal: true
 
 require_relative '../mixin/errors'
-require_relative 'concrete'
 require_relative 'parameter'
 require_relative 'hardwired/enumerable_type'
 require_relative 'hardwired/hash_type'
@@ -46,7 +45,7 @@ module AMA
             @types[klass] = type
           end
 
-          # @param [AMA::Entity::Mapper::Type::Concrete] type
+          # @param [AMA::Entity::Mapper::Type] type
           def register(type)
             @types[type.type] = type
           end

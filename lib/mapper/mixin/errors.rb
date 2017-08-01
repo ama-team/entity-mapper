@@ -25,12 +25,8 @@ module AMA
           error_types.each do |type|
             method = "#{type.to_s.downcase}_error"
             error_class = error_namespace.const_get("#{type}Error")
-            define_method method do |message, parent_error = nil, **options|
-              # TODO: deprecate parent_error parameter
+            define_method method do |message, **options|
               parent_error = options[:parent]
-              if options[:context]
-                message += " (path: #{options[:context].path})"
-              end
               unless parent_error.nil?
                 if options[:signature] && parent_error.is_a?(ArgumentError)
                   message += '.' if /\w$/ =~ message
@@ -39,6 +35,9 @@ module AMA
                 end
                 message += '.' if /\w$/ =~ message
                 message += " Parent error: #{parent_error.message}"
+              end
+              if options[:context]
+                message += " (path: #{options[:context].path})"
               end
               raise error_class, message
             end

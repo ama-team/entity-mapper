@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative '../concrete'
+require_relative '../../type'
 require_relative '../../path/segment'
 require_relative '../../mixin/errors'
 require_relative '../../mixin/reflection'
@@ -13,7 +13,7 @@ module AMA
       class Type
         module Hardwired
           # Predefined type for Hash class
-          class HashType < Concrete
+          class HashType < Type
             include Mixin::Errors
             extend Mixin::Errors
 

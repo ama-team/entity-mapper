@@ -13,21 +13,13 @@ module AMA
             INSTANCE = new
 
             # @param [Object] entity
-            # @param [Mapper::Type::Concrete] type
-            # @param [Mapper::Context] context
+            # @param [Mapper::Type] type
+            # @param [Mapper::Context] _context
             # @return [Array<Array<Attribute, String, Segment>] List of
             #   violations, combined with attribute and segment
-            def validate(entity, type, context)
-              enumerator = type.enumerator.enumerate(entity, type, context)
-              enumerator.flat_map do |attribute, value, segment = nil|
-                next [] if attribute.virtual
-                next_context = segment.nil? ? context : context.advance(segment)
-                validator = attribute.validator
-                violations = validator.validate(value, attribute, next_context)
-                violations.map do |violation|
-                  [attribute, violation, segment]
-                end
-              end
+            def validate(entity, type, _context)
+              return [] if type.instance?(entity)
+              ["Provided object is not an instance of #{type.type}"]
             end
 
             class << self

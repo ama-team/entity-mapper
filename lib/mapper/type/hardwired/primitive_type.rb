@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative '../concrete'
+require_relative '../../type'
 require_relative '../../mixin/errors'
 
 module AMA
@@ -9,7 +9,7 @@ module AMA
       class Type
         module Hardwired
           # Predefined type for Set class
-          class PrimitiveType < Concrete
+          class PrimitiveType < Type
             include Mixin::Errors
 
             def initialize(type, *methods, &denormalizer)
@@ -28,14 +28,13 @@ module AMA
                 Enumerator.new { |*| }
               end
               injector_block { |*| }
-              validator_block { |*| [] }
             end
 
             private
 
             def default_denormalizer(methods)
-              lambda do |input, type, context = nil|
-                break input if type.satisfied_by?(input, context)
+              lambda do |input, type, context|
+                break input if type.valid?(input, context)
                 candidate = methods.reduce(nil) do |carrier, method|
                   next carrier if carrier || !input.respond_to?(method)
                   input.send(method)

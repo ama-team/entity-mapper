@@ -7,6 +7,10 @@ klass = ::AMA::Entity::Mapper::Type::Any
 compliance_error_class = ::AMA::Entity::Mapper::Error::ComplianceError
 
 describe klass do
+  let(:instance) do
+    klass::INSTANCE
+  end
+
   let(:context) do
     double(
       path: nil,
@@ -16,7 +20,7 @@ describe klass do
 
   describe '#eql?' do
     it 'should be equal to other Any type' do
-      expect(klass.new).to eq(klass.new)
+      expect(instance).to eq(klass.new)
     end
   end
 
@@ -29,7 +33,7 @@ describe klass do
   describe '#parameter!' do
     it 'should raise compliance error on #parameter! call' do
       proc = lambda do
-        klass.new.parameter!(:id)
+        instance.parameter!(:id)
       end
       expect(&proc).to raise_error(compliance_error_class)
     end
@@ -37,20 +41,13 @@ describe klass do
 
   describe '#instance?' do
     it 'should return true for any #instance? call' do
-      expect(klass.new.instance?(true)).to be true
-    end
-  end
-
-  describe '#satisfied_by?' do
-    it 'should return true for any #satisfied_by? call' do
-      expect(klass.new.satisfied_by?(true, context)).to be true
+      expect(instance.instance?(true)).to be true
     end
   end
 
   describe '#resolve_parameter' do
     it 'should pass through #resolve_parameter call' do
-      type = klass.new
-      expect(type.resolve_parameter(nil, nil)).to eq(type)
+      expect(instance.resolve_parameter(nil, nil)).to be(instance)
     end
   end
 
@@ -58,6 +55,26 @@ describe klass do
     # yes i do pursuit 100% coverage
     it 'should return constant output' do
       expect(klass.new.to_s).to eq(klass.new.to_s)
+    end
+  end
+
+  describe '#to_def' do
+    it 'returns a star' do
+      expect(instance.to_def).to eq('*')
+    end
+  end
+
+  describe '#attributes' do
+    it 'always returns empty hash' do
+      instance.attributes[:id] = 12
+      expect(instance.attributes).to be_empty
+    end
+  end
+
+  describe '#parameters' do
+    it 'always returns empty hash' do
+      instance.parameters[:id] = 12
+      expect(instance.parameters).to be_empty
     end
   end
 end

@@ -2,7 +2,7 @@
 
 require 'set'
 
-require_relative '../concrete'
+require_relative '../../type'
 require_relative '../../path/segment'
 require_relative '../../mixin/errors'
 
@@ -12,7 +12,7 @@ module AMA
       class Type
         module Hardwired
           # Predefined type for Set class
-          class SetType < Concrete
+          class SetType < Type
             def initialize
               super(::Set)
               attribute!(:_value, parameter!(:T), virtual: true)

@@ -10,9 +10,15 @@ mapping_error_class = ::AMA::Entity::Mapper::Error::MappingError
 type = klass::INSTANCE
 
 describe klass do
+  let(:context) do
+    context = double(path: double(current: nil))
+    allow(context).to receive(:advance).and_return(context)
+    context
+  end
+
   describe 'factory' do
     it 'just provides empty set' do
-      expect(type.factory.create(type, nil, nil)).to eq(Set.new([]))
+      expect(type.factory.create(type, double, context)).to eq(Set.new([]))
     end
   end
 
@@ -20,19 +26,19 @@ describe klass do
     it 'provides array denormalizer' do
       data = [1, 2, 3]
       expectation = Set.new(data)
-      expect(type.denormalizer.denormalize(data, type)).to eq(expectation)
+      expect(type.denormalizer.denormalize(data, type, context)).to eq(expectation)
     end
 
     it 'raises if Hash is denormalized' do
       proc = lambda do
-        type.denormalizer.denormalize({}, type)
+        type.denormalizer.denormalize({}, type, context)
       end
       expect(&proc).to raise_error(mapping_error_class)
     end
 
     it 'raises if non-Enumerable is denormalized' do
       proc = lambda do
-        type.denormalizer.denormalize(double, type)
+        type.denormalizer.denormalize(double, type, context)
       end
       expect(&proc).to raise_error(mapping_error_class)
     end
@@ -42,7 +48,7 @@ describe klass do
     it 'normalizes Set to Array' do
       data = [1, 2, 3]
       expectation = Set.new(data)
-      expect(type.normalizer.normalize(expectation, type)).to eq(data)
+      expect(type.normalizer.normalize(expectation, type, context)).to eq(data)
     end
   end
 
@@ -51,7 +57,7 @@ describe klass do
       set = Set.new([])
       data = [1, 2, 3]
       data.each do |number|
-        type.injector.inject(set, type, double, number, double)
+        type.injector.inject(set, type, double, number, context)
       end
       expect(set).to eq(Set.new(data))
     end
@@ -62,7 +68,7 @@ describe klass do
       value = 1
       set = Set.new([value])
       proc = lambda do |block|
-        type.enumerator.enumerate(set, type, double).each(&block)
+        type.enumerator.enumerate(set, type, context).each(&block)
       end
       attribute = type.attributes[:_value]
       expect(&proc).to yield_with_args([attribute, value, anything])

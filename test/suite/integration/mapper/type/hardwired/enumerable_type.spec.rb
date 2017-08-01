@@ -14,19 +14,21 @@ describe klass do
   end
 
   let(:context) do
-    double(path: double(current: nil))
+    context = double(path: double(current: nil))
+    allow(context).to receive(:advance).and_return(context)
+    context
   end
 
   describe '#factory' do
     it 'provides array factory' do
-      expect(type.factory.create(type)).to eq([])
+      expect(type.factory.create(type, double, context)).to eq([])
     end
   end
 
   describe '#normalizer' do
     it 'should provide convert-to-array normalizer' do
       data = [1, 2, 3]
-      expect(type.normalizer.normalize(data, type)).to eq(data)
+      expect(type.normalizer.normalize(data, type, context)).to eq(data)
     end
   end
 
@@ -52,11 +54,11 @@ describe klass do
   end
 
   describe '#enumerator' do
-    it 'should provide default enumerator' do
+    it 'provides default enumerator' do
       source = [1, 2, 3]
       attribute = type.attributes[:_value]
       proc = lambda do |consumer|
-        type.enumerator.enumerate(source, type).each(&consumer)
+        type.enumerator.enumerate(source, type, context).each(&consumer)
       end
       expectations = source.each_with_index.map do |item, index|
         [attribute, item, segment_class.index(index)]

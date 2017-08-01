@@ -23,7 +23,7 @@ module AMA
             mapper.register(self)
           end
 
-          # @return [AMA::Entity::Mapper::Type::Concrete]
+          # @return [AMA::Entity::Mapper::Type]
           def bound_type
             mapper[self]
           end

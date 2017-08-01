@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative '../concrete'
+require_relative '../../type'
 require_relative '../../path/segment'
 require_relative '../../mixin/errors'
 
@@ -10,7 +10,7 @@ module AMA
       class Type
         module Hardwired
           # Default Enumerable handler
-          class EnumerableType < Concrete
+          class EnumerableType < Type
             include Mixin::Errors
 
             def initialize

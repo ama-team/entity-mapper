@@ -2,7 +2,7 @@
 
 require_relative 'mapper/version'
 require_relative 'mapper/engine'
-require_relative 'mapper/type/concrete'
+require_relative 'mapper/type'
 require_relative 'mapper/type/registry'
 
 module AMA
@@ -21,7 +21,7 @@ module AMA
 
       def register(klass)
         return types[klass] if types.key?(klass)
-        types.register(Type::Concrete.new(klass))
+        types.register(Type.new(klass))
       end
 
       def resolve(type)
