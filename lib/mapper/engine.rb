@@ -8,8 +8,6 @@ require_relative 'mixin/suppression_support'
 require_relative 'type'
 require_relative 'type/registry'
 require_relative 'type/resolver'
-require_relative 'engine/normalizer'
-require_relative 'engine/denormalizer'
 require_relative 'engine/recursive_mapper'
 require_relative 'engine/recursive_normalizer'
 
