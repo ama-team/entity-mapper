@@ -14,6 +14,12 @@ module AMA
           # standard hash-based normalization/denormalization, and that would
           # cause end-user frustration
           class ArrayType < EnumerableType
+            def initialize
+              super
+              self.type = Array
+            end
+
+            INSTANCE = new
           end
         end
       end

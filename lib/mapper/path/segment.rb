@@ -37,10 +37,6 @@ module AMA
 
           class << self
             def attribute(name)
-              new(name, '#')
-            end
-
-            def property(name)
               new(name, '.')
             end
 

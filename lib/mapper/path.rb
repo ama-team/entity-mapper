@@ -30,12 +30,6 @@ module AMA
           push(Segment.attribute(name))
         end
 
-        # @param [String, Symbol] name
-        # @return [AMA::Entity::Mapper::Path]
-        def property(name)
-          push(Segment.property(name))
-        end
-
         # @param [Array<AMA::Entity::Mapper::Path::Segment>] segments
         # @return [AMA::Entity::Mapper::Path]
         def push(*segments)

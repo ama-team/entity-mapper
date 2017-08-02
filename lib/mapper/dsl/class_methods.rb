@@ -8,6 +8,7 @@ require_relative '../handler/entity/normalizer'
 require_relative '../handler/entity/denormalizer'
 require_relative '../handler/entity/validator'
 require_relative '../type'
+require_relative '../type/parameter'
 
 module AMA
   module Entity
@@ -37,6 +38,7 @@ module AMA
           def attribute(name, *types, **options)
             types = types.map do |type|
               next parameter(type) if type.is_a?(Symbol) || type.is_a?(String)
+              next type if type.is_a?(Type::Parameter)
               @engine.resolve(type)
             end
             bound_type.attribute!(name, *types, **options)

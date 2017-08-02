@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+# rubocop:disable Metrics/ClassLength
+
+require 'yaml'
 require 'rspec'
 require 'allure-rspec'
 require 'coveralls'
@@ -75,6 +78,22 @@ module AMA
                 ::AllureRSpec.configure do |allure|
                   allure.output_dir = metadata_path('allure', test_type)
                   allure.logging_level = Logger::INFO
+                end
+                add_allure_helper_method
+              end
+
+              def add_allure_helper_method
+                ::AllureRSpec::DSL::Example.instance_eval do
+                  define_method :attach_yaml do |data, name = 'data'|
+                    file = Tempfile.new
+                    begin
+                      file.write(data.to_yaml)
+                      file.close
+                      attach_file("#{name}.yml", file, mime_type: 'text/plain')
+                    ensure
+                      file.unlink
+                    end
+                  end
                 end
               end
 

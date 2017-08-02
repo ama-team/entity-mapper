@@ -6,7 +6,7 @@ klass = ::AMA::Entity::Mapper::Path
 
 describe klass do
   let(:default) do
-    klass.new.index('0').attribute('attribute').property('property')
+    klass.new.attribute('attribute').index('0').attribute('attribute')
   end
 
   let(:empty) do
@@ -54,7 +54,7 @@ describe klass do
 
   describe '#to_s' do
     it 'should be represented in standard pattern' do
-      expect(default.to_s).to eq('$[0]#attribute.property')
+      expect(default.to_s).to eq('$.attribute[0].attribute')
     end
   end
 
