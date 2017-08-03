@@ -55,6 +55,9 @@ module AMA
           # @!attribute values
           #   @return [Array<Object>]
           attr_accessor :values
+          # @!attribute aliases
+          #   @return [Array<Symbol>]
+          attr_accessor :aliases
 
           handler_namespace Handler::Attribute
 
@@ -71,7 +74,8 @@ module AMA
               default: nil,
               nullable: false,
               values: [],
-              validator: nil
+              validator: nil,
+              aliases: []
             }
           end
 

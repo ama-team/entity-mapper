@@ -17,10 +17,12 @@ describe klass do
     {
       value: double(
         name: :value,
+        aliases: %i[item entity],
         virtual: false
       ),
       virtual: double(
         name: :virtual,
+        aliases: [],
         virtual: true
       )
     }
@@ -92,6 +94,27 @@ describe klass do
       data = { virtual: 12 }
       result = denormalizer.denormalize(data, type, context)
       expect(result.instance_variables).not_to include(:@virtual)
+    end
+
+    it 'uses attribute aliases' do
+      data = { item: 12 }
+      result = denormalizer.denormalize(data, type, context)
+      expect(result.instance_variables).to include(:@value)
+      expect(result.instance_variable_get(:@value)).to eq(data[:item])
+    end
+
+    it 'uses attribute aliases in eabsence of exact match' do
+      data = { entity: 12 }
+      result = denormalizer.denormalize(data, type, context)
+      expect(result.instance_variables).to include(:@value)
+      expect(result.instance_variable_get(:@value)).to eq(data[:entity])
+    end
+
+    it 'uses attribute aliases in order of their declaration' do
+      data = { item: 12, entity: 13 }
+      result = denormalizer.denormalize(data, type, context)
+      expect(result.instance_variables).to include(:@value)
+      expect(result.instance_variable_get(:@value)).to eq(data[:item])
     end
   end
 

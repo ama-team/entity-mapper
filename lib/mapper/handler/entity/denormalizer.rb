@@ -23,15 +23,24 @@ module AMA
               entity = type.factory.create(type, source, context)
               type.attributes.values.each do |attribute|
                 next if attribute.virtual
-                [attribute.name.to_s, attribute.name].each do |name|
+                candidate_names(attribute).each do |name|
                   next unless source.key?(name)
-                  set_object_attribute(entity, name, source[name])
+                  value = source[name]
+                  break set_object_attribute(entity, attribute.name, value)
                 end
               end
               entity
             end
 
             private
+
+            # @param [AMA::Entity::Mapper::Type::Attribute] attribute
+            # @return [Array<Symbol, String>]
+            def candidate_names(attribute)
+              [attribute.name, *attribute.aliases].flat_map do |candidate|
+                [candidate, candidate.to_s]
+              end
+            end
 
             # @param [Hash] source
             # @param [AMA::Entity::Mapper::Type] type
