@@ -3,6 +3,7 @@
 # rubocop:disable Metrics/LineLength
 # rubocop:disable Metrics/BlockLength
 
+require 'yaml'
 require 'bundler/gem_tasks'
 require 'rspec/core/rake_task'
 require 'rubocop/rake_task'
@@ -77,6 +78,11 @@ end
 task lint: %i[lint:all]
 
 task validate: %i[lint test:with-report]
+
+task :gemspec do
+  spec = ::Gem::Specification.load("#{__dir__}/ama-entity-mapper.gemspec")
+  puts spec.to_yaml
+end
 
 task :default do
   sh 'bundle exec rake -AT'

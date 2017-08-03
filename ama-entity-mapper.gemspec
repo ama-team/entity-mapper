@@ -17,8 +17,8 @@ Gem::Specification.new do |spec|
   spec.homepage      = 'https://github.com/ama-team/ruby-entity-mapper'
   spec.license       = 'MIT'
 
-  spec.files         = `git ls-files -z`.split("\x0").reject do |f|
-    f.match(%r{^(test|spec|features)/})
+  spec.files         = `git ls-files -z`.split("\x0").select do |f|
+    f.match(%r{^(lib/|docs/.*\.md)})
   end
   spec.bindir        = 'exe'
   spec.executables   = []
