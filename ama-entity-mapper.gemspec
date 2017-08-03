@@ -6,9 +6,11 @@
 lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 
+require_relative 'lib/mapper/version'
+
 Gem::Specification.new do |spec|
   spec.name          = 'ama-entity-mapper'
-  spec.version       = '0.1.0'
+  spec.version       = AMA::Entity::Mapper::Version::VERSION
   spec.authors       = ['AMA Team']
   spec.email         = ['dev@amagroup.ru']
 
