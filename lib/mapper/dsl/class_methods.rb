@@ -33,7 +33,12 @@ module AMA
           # @param [String, Symbol] name
           # @param [Array<AMA::Entity::Mapper::Type] types List of possible
           #   attribute types
-          # @param [Hash] options Attribute options: :virtual, :sensitive
+          # @param [Hash] options Attribute options:
+          # @option options [TrueClass, FalseClass] virtual
+          # @option options [TrueClass, FalseClass] sensitive
+          # @option options [TrueClass, FalseClass] nullable
+          # @option options [Object] default
+          # @option options [Array] values
           # @return [AMA::Entity::Mapper::Type::Attribute]
           def attribute(name, *types, **options)
             types = types.map do |type|
@@ -50,6 +55,8 @@ module AMA
             end
           end
 
+          # Returns parameter reference
+          #
           # @param [String, Symbol] id
           # @return [AMA::Entity::Mapper::Type::Parameter]
           def parameter(id)

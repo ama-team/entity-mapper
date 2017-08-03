@@ -23,6 +23,9 @@ module AMA
           # @param [Array<AMA::Entity::Mapper::Type] types
           # @param [AMA::Entity::Mapper::Context] context
           def map(source, types, context)
+            message = "Mapping #{source.class} into one of " \
+              "#{types.map(&:to_def).join(', ')}"
+            context.logger.debug(message)
             successful(types, Mapper::Error) do |type|
               result = map_type(source, type, context)
               type.valid!(result, context)
@@ -76,8 +79,13 @@ module AMA
           # @param [AMA::Entity::Mapper::Type::Attribute] attribute
           # @param [AMA::Entity::Mapper::Context] context
           def map_attribute(source, attribute, context)
+            message = "Extracting attribute #{attribute} from #{source.class}"
+            context.logger.debug(message)
             successful(attribute.types, Mapper::Error) do |type|
-              break nil if source.nil? && attribute.nullable
+              if source.nil? && attribute.nullable
+                context.logger.debug('Found legal nil, short-circuiting')
+                break nil
+              end
               result = map_type(source, type, context)
               attribute.valid!(result, context)
               result
@@ -89,7 +97,7 @@ module AMA
           # @param [Array] attributes
           # @param [AMA::Entity::Mapper::Context] ctx
           def install_attributes(target, type, attributes, ctx)
-            ctx.logger.debug('Installing updated attributes')
+            ctx.logger.debug("Installing updated attributes on #{type}")
             attributes.each do |_, attribute, value, local_ctx|
               type.injector.inject(target, type, attribute, value, local_ctx)
             end
@@ -115,7 +123,8 @@ module AMA
           # @param [AMA::Entity::Mapper::Context] context
           # @return [Object]
           def reassemble(source, type, context)
-            context.logger.debug("Reassembling #{source} as #{type.to_def}")
+            message = "Reassembling #{source.class} as #{type.to_def}"
+            context.logger.debug(message)
             source_type = @registry.find(source.class) || Type.new(source.class)
             normalizer = source_type.normalizer
             normalized = normalizer.normalize(source, source_type, context)
