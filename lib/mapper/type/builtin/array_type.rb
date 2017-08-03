@@ -6,7 +6,7 @@ module AMA
   module Entity
     class Mapper
       class Type
-        module Hardwired
+        module BuiltIn
           # Even though it is functionally unnecessary, end users are more
           # likely to call `Mapper.map(input, Array)` rather than
           # `Mapper.map(input, Enumerable)`. Because mapper has no right to

@@ -11,7 +11,7 @@ module AMA
   module Entity
     class Mapper
       class Type
-        module Hardwired
+        module BuiltIn
           # Predefined type for Hash class
           class HashType < Type
             include Mixin::Errors

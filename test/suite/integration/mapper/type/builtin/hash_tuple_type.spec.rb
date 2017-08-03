@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require_relative '../../../../../../lib/mapper/type/hardwired/hash_tuple_type'
+require_relative '../../../../../../lib/mapper/type/builtin/hash_tuple_type'
 require_relative '../../../../../../lib/mapper/type/aux/hash_tuple'
 
-klass = ::AMA::Entity::Mapper::Type::Hardwired::HashTupleType
+klass = ::AMA::Entity::Mapper::Type::BuiltIn::HashTupleType
 tuple_class = ::AMA::Entity::Mapper::Type::Aux::HashTuple
 
 describe klass do

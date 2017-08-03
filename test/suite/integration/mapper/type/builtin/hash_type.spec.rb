@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
-require_relative '../../../../../../lib/mapper/type/hardwired/hash_type'
+require_relative '../../../../../../lib/mapper/type/builtin/hash_type'
 require_relative '../../../../../../lib/mapper/type/aux/hash_tuple'
 require_relative '../../../../../../lib/mapper/error/mapping_error'
 require_relative '../../../../../../lib/mapper/path/segment'
 
-klass = ::AMA::Entity::Mapper::Type::Hardwired::HashType
+klass = ::AMA::Entity::Mapper::Type::BuiltIn::HashType
 tuple_class = ::AMA::Entity::Mapper::Type::Aux::HashTuple
 segment_class = ::AMA::Entity::Mapper::Path::Segment
 mapping_error_class = ::AMA::Entity::Mapper::Error::MappingError

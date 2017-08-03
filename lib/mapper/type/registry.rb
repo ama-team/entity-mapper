@@ -2,12 +2,12 @@
 
 require_relative '../mixin/errors'
 require_relative 'parameter'
-require_relative 'hardwired/enumerable_type'
-require_relative 'hardwired/array_type'
-require_relative 'hardwired/hash_type'
-require_relative 'hardwired/hash_tuple_type'
-require_relative 'hardwired/set_type'
-require_relative 'hardwired/primitive_type'
+require_relative 'builtin/enumerable_type'
+require_relative 'builtin/array_type'
+require_relative 'builtin/hash_type'
+require_relative 'builtin/hash_tuple_type'
+require_relative 'builtin/set_type'
+require_relative 'builtin/primitive_type'
 
 module AMA
   module Entity
@@ -25,12 +25,14 @@ module AMA
 
           # @return [AMA::Entity::Mapper::Type::Registry]
           def with_default_types
-            register(Hardwired::EnumerableType::INSTANCE)
-            register(Hardwired::ArrayType::INSTANCE)
-            register(Hardwired::HashType::INSTANCE)
-            register(Hardwired::SetType::INSTANCE)
-            register(Hardwired::HashTupleType::INSTANCE)
-            Hardwired::PrimitiveType::ALL.each do |type|
+            register(BuiltIn::EnumerableType::INSTANCE)
+            register(BuiltIn::ArrayType::INSTANCE)
+            register(BuiltIn::HashType::INSTANCE)
+            register(BuiltIn::SetType::INSTANCE)
+            register(BuiltIn::HashTupleType::INSTANCE)
+            register(BuiltIn::RationalType::INSTANCE)
+            register(BuiltIn::DateTimeType::INSTANCE)
+            BuiltIn::PrimitiveType::ALL.each do |type|
               register(type)
             end
             self

@@ -4,9 +4,9 @@ require_relative '../../../../lib/mapper/engine'
 require_relative '../../../../lib/mapper/type'
 require_relative '../../../../lib/mapper/type/registry'
 require_relative '../../../../lib/mapper/type/any'
-require_relative '../../../../lib/mapper/type/hardwired/hash_type'
-require_relative '../../../../lib/mapper/type/hardwired/enumerable_type'
-require_relative '../../../../lib/mapper/type/hardwired/set_type'
+require_relative '../../../../lib/mapper/type/builtin/hash_type'
+require_relative '../../../../lib/mapper/type/builtin/enumerable_type'
+require_relative '../../../../lib/mapper/type/builtin/set_type'
 require_relative '../../../../lib/mapper/error/compliance_error'
 require_relative '../../../../lib/mapper/error/mapping_error'
 
@@ -45,15 +45,15 @@ describe klass do
   end
 
   let(:hash_type) do
-    ::AMA::Entity::Mapper::Type::Hardwired::HashType.new
+    ::AMA::Entity::Mapper::Type::BuiltIn::HashType.new
   end
 
   let(:enumerable_type) do
-    ::AMA::Entity::Mapper::Type::Hardwired::EnumerableType.new
+    ::AMA::Entity::Mapper::Type::BuiltIn::EnumerableType.new
   end
 
   let(:set_type) do
-    ::AMA::Entity::Mapper::Type::Hardwired::SetType.new
+    ::AMA::Entity::Mapper::Type::BuiltIn::SetType.new
   end
 
   let(:registry) do

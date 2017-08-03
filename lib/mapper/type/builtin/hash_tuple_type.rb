@@ -7,7 +7,7 @@ module AMA
   module Entity
     class Mapper
       class Type
-        module Hardwired
+        module BuiltIn
           # Pair class definition
           class HashTupleType < Type
             def initialize

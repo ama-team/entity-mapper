@@ -8,7 +8,7 @@ module AMA
   module Entity
     class Mapper
       class Type
-        module Hardwired
+        module BuiltIn
           # Default Enumerable handler
           class EnumerableType < Type
             include Mixin::Errors

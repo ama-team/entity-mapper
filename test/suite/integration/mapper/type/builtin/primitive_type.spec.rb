@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require_relative '../../../../../../lib/mapper/type/hardwired/primitive_type'
+require_relative '../../../../../../lib/mapper/type/builtin/primitive_type'
 require_relative '../../../../../../lib/mapper/error/compliance_error'
 
-klass = ::AMA::Entity::Mapper::Type::Hardwired::PrimitiveType
+klass = ::AMA::Entity::Mapper::Type::BuiltIn::PrimitiveType
 compliance_error_class = ::AMA::Entity::Mapper::Error::ComplianceError
 
 describe klass do

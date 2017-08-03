@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require_relative '../../../../../../lib/mapper/type/hardwired/enumerable_type'
+require_relative '../../../../../../lib/mapper/type/builtin/enumerable_type'
 require_relative '../../../../../../lib/mapper/path/segment'
 require_relative '../../../../../../lib/mapper/error/mapping_error'
 
-klass = ::AMA::Entity::Mapper::Type::Hardwired::EnumerableType
+klass = ::AMA::Entity::Mapper::Type::BuiltIn::EnumerableType
 segment_class = ::AMA::Entity::Mapper::Path::Segment
 mapping_error_class = ::AMA::Entity::Mapper::Error::MappingError
 

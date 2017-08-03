@@ -7,7 +7,7 @@ module AMA
   module Entity
     class Mapper
       class Type
-        module Hardwired
+        module BuiltIn
           # Predefined type for Set class
           class PrimitiveType < Type
             include Mixin::Errors
