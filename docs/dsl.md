@@ -1,5 +1,5 @@
 ---
-title: DSL in detail
+title: DSL In Detail
 ---
 
 To add mapper support in your classes, you need to include DSL module:
@@ -30,12 +30,16 @@ several classes:
 attribute :disabled, TrueClass, FalseClass
 ```
 
-Attribute options, at the moment of writing, are `sensitive` and `virtual`.
-Sensitive attributes are included when mapped to specified type, but excluded
-when mapped from specified type. That allows to read you some private content
-but be sure that is never persisted. Virtual attribute is completely excluded
-from direct processing and intended to be used as type holder for custom 
-handlers.
+Attributes have following options:
+
+- :nullable (default: true), whether that attribute may be represented
+  by a `nil`
+- :default (default: nil), default value for attribute
+- :values (default: []), allowed ste of values for attribute
+- :sensitive (default: false), forces attribute to be omitted during 
+  normalization
+- :virtual (default: false), forces attribute to be ignored
+- :aliases (default: []), set of other names attribute may be given
 
 Attribute declaration creates corresponding getter and setter.
 
@@ -54,8 +58,11 @@ After that parameter can be configured during type specification:
 Mapper.map(input, [CustomClass, T: Integer])
 ```
 
-At the moment of writing, parameter could be resolved only to single type. This
-is a known issue that should be fixed in later releases.
+Parameters may be resolved with singular or multiple types:
+
+```ruby
+Mapper.map(input, [CustomClass, T: [TrueClass, FalseClass, NilClass]])
+```
 
 ## Handlers
 
@@ -67,23 +74,13 @@ handler types:
 - Denormalizer, populates empty instance using low-level data structure
 - Enumerator, enumerates attributes for specified entity
 - Extractor, extracts entity attributes out of low-level type
-- Acceptor, accepts and sets attributes for specified entity
+- Injector, injects attributes in specified entity
 
 They may be set as objects or blocks using corresponding setters:
 
 ```ruby
-factory = ->(*) { target_class.new }
-normalizer = normalizer_factory
-denormalizer = lambda do
-  # ...
-end
-enumerator = lambda do
-  # ...
-end
-extractor = lambda do
-  # ...
-end
-acceptor = lambda do
+factory = factory_object
+denormalizer_block do
   # ...
 end
 ```

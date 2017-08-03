@@ -84,6 +84,10 @@ task :gemspec do
   puts spec.to_yaml
 end
 
+task :jekyll do
+  sh 'bundle exec jekyll serve -s docs/ -d docs/_site/'
+end
+
 task :default do
   sh 'bundle exec rake -AT'
 end

@@ -8,6 +8,7 @@ require_relative '../handler/entity/normalizer'
 require_relative '../handler/entity/denormalizer'
 require_relative '../handler/entity/validator'
 require_relative '../type'
+require_relative '../type/any'
 require_relative '../type/parameter'
 
 module AMA
@@ -46,6 +47,7 @@ module AMA
               next type if type.is_a?(Type::Parameter)
               @engine.resolve(type)
             end
+            types = [Type::Any::INSTANCE] if types.empty?
             bound_type.attribute!(name, *types, **options)
             define_method(name) do
               instance_variable_get("@#{name}")

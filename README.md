@@ -10,16 +10,15 @@ This is work-in-progress project, nothing has been finished yet.
 [![Code Climate][shields.codeclimate]][codeclimate]
 [![Scrutinizer][shields.scrutinizer.master]][scrutinizer.master]
 
-This project contains an entity mapper - an API for native data 
-structure to custom class and vice versa conversion. You may find it
-useful in:
+This library provides entity mapper - API for seamless 
+one-class-to-another object conversion. This comes handy in:
 
 - Deserializing complex structures
 - Converting structures to objects that don't have one-to-one relation
 - Retrieving entity information from it's path (e.g. inferring parent hash
 keys as entity attribute)
-- Deserializing objects that may have different representation (e.g. from 
-hash or string)
+- Deserializing objects that may have different representation (e.g. name
+may came as both `'John Doe'` or `{first: 'John', last: 'Doe'}`)
 
 You may find yourself in such a situation when storing data in Chef 
 node attributes, building API clients or storing data in database.
@@ -70,7 +69,7 @@ structure processing. Imagine an API that responds with hash of lists:
 winners:
   - first_name: Max
     last_name: Payne
-    login: mp
+    login: mpayne
 losers:
   - first_name: Nicole
     last_name: Horne
@@ -99,7 +98,7 @@ class Page
   
   attribute :number, Integer
   attribute :last, TrueClass, FalseClass
-  # Substituting array's parameter T with page class parameter E,
+  # Substituting Array's parameter T with page class parameter E,
   # so content is not Array<Array.T>, but Array<Page.E>
   attribute :content, [Array, T: parameter(:E)]
 end
@@ -107,18 +106,18 @@ end
 class User
   include AMA::Entity::Mapper::DSL
   
-  attribute :login, Symbol
-  attribute :policy, Symbol
+  attribute :login, Symbol, aliases: %i[id user_id]
+  attribute :policy, Symbol, values: %i[read write manage], default: :read
   attribute :keys, [Hash, K: Symbol, V: PrivateKey], default: {}
-  attribute :last_login, DateTime
+  attribute :last_login, DateTime, nullable: true
 end
 
 class PrivateKey
   include AMA::Entity::Mapper::DSL
   
   attribute :id, Symbol
-  # sensitive attributes may be restored from incoming data, but are ignored
-  # when mapped into another type
+  # Sensitive attributes may be restored from incoming data, but are ignored
+  # when mapped into another type.
   attribute :content, String, sensitive: true
 end
 
@@ -155,12 +154,37 @@ That's the crash course, most probably you've already got what you need.
 If that's not enough, full documentation is available at 
 [GitHub Pages][doc].
 
+## Versioning
+
+This project adheres to [Semantic Versioning][semver]. In a nutshell,
+this means the following:
+
+- Every patch release (a.b.X -> a.b.Y) fixes bugs and is safe to
+update to from previous patch release
+- Every minor release (a.X.b -> a.Y.0) contains new features
+- Every minor release before 1.0.0 **may** break API
+- Every minor release after 1.0.0 does not break API (but may introduce
+new coexisting replacement API and schedule existing API for,
+deprecation) updating to next minor release is safe after 1.0.0
+- Every major release contains significant API change and it is not 
+safe to jump from one major release to another.
+
 ## Development
 
-After checking out the repo, run `bin/setup` to install dependencies. 
-Then, run `rake test` to run the tests. If you have 
+After checking out the repo, run `bin/setup` to install dependencies
+and git hooks.  
+Then, run `rake validate` to run lint and tests. If you have 
 [Allure report generator][allure] on your machine, you may run 
 `rake test:with-report` to generate report after test run.
+
+Tests are separated into three categories: unit (no dependencies, 
+everything is mocked), integration (testing components with their 
+dependencies, optional mocking) and acceptance (no mocks, real data,
+testing high-level components and library as a whole).
+
+Development is performed using git-flow, meaning that development id
+done in dev or release/x.y branch, features and stuff is done in 
+branches spawn from branches specified above.
 
 To install this gem onto your local machine, run `bundle exec rake install`. 
 To release a new version, update the version number in `version.rb`, 
@@ -177,7 +201,8 @@ Dev branch state:
 ## Contributing
 
 Bug reports and pull requests are welcome on GitHub at 
-[https://github.com/ama-team/entity-mapper]().
+[https://github.com/ama-team/entity-mapper](). Please send your pull
+requests into dev branch (not into master).
 
 ## License
 
@@ -205,3 +230,4 @@ The gem is available as open source under the terms of the
   [circleci.dev]: https://circleci.com/gh/ama-team/entity-mapper/tree/dev
   [codeclimate]: https://codeclimate.com/github/ama-team/entity-mapper
   [gem]: https://rubygems.org/gems/ama-entity-mapper
+  [semver]: http://semver.org/spec/v2.0.0.html
