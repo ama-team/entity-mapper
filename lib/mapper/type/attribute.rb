@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# rubocop:disable Metrics/ClassLength
+
 require_relative '../handler/attribute/validator'
 require_relative '../mixin/errors'
 require_relative '../mixin/handler_support'
@@ -146,9 +148,18 @@ module AMA
             eql?(other)
           end
 
+          def to_def
+            types = @types ? @types.map(&:to_def).join(', ') : 'none'
+            message = "#{owner.type}.#{name}"
+            message += ':virtual' if virtual
+            "#{message}<#{types}>"
+          end
+
           def to_s
             message = "Attribute #{owner.type}.#{name}"
-            virtual ? "#{message} (virtual)" : message
+            message = "#{message} (virtual)" if virtual
+            types = @types ? @types.map(&:to_def).join(', ') : 'none'
+            "#{message} <#{types}>"
           end
 
           private

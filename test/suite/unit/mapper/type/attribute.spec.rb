@@ -13,7 +13,8 @@ describe klass do
     double(
       type: Class.new,
       is_a?: true,
-      to_s: 'type',
+      to_s: 'Type',
+      to_def: 'Type',
       resolved?: true,
       resolved!: nil
     )
@@ -23,7 +24,8 @@ describe klass do
     double(
       type: Class.new,
       is_a?: true,
-      to_s: 'other type',
+      to_s: 'OtherType',
+      to_def: 'OtherType',
       resolved?: true,
       resolved!: nil
     )

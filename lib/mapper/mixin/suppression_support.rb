@@ -16,12 +16,14 @@ module AMA
           #
           # @param [Enumerator] enumerator
           # @param [Class<? extends StandardError>] error
-          def successful(enumerator, error = StandardError)
+          # @param [AMA::Entity::Mapper::Context] ctx
+          def successful(enumerator, error = StandardError, ctx = nil)
             suppressed = []
             enumerator.each do |*args|
               begin
                 return yield(*args)
               rescue error => e
+                ctx.logger.debug("#{e.class} raised: #{e.message}") if ctx
                 suppressed.push(e)
               end
             end
