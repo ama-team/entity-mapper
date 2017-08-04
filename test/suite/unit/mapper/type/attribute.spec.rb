@@ -1,18 +1,20 @@
 # frozen_string_literal: true
 
 require_relative '../../../../../lib/mapper/type/attribute'
-require_relative '../../../../../lib/mapper/exception/compliance_error'
+require_relative '../../../../../lib/mapper/error/compliance_error'
+require_relative '../../../../../lib/mapper/error/validation_error'
 
 klass = ::AMA::Entity::Mapper::Type::Attribute
-compliance_error_class = ::AMA::Entity::Mapper::Exception::ComplianceError
+compliance_error_class = ::AMA::Entity::Mapper::Error::ComplianceError
+validation_error_class = ::AMA::Entity::Mapper::Error::ValidationError
 
 describe klass do
   let(:type) do
     double(
       type: Class.new,
       is_a?: true,
-      to_s: 'type',
-      satisfied_by?: true,
+      to_s: 'Type',
+      to_def: 'Type',
       resolved?: true,
       resolved!: nil
     )
@@ -22,11 +24,26 @@ describe klass do
     double(
       type: Class.new,
       is_a?: true,
-      to_s: 'other type',
-      satisfied_by?: true,
+      to_s: 'OtherType',
+      to_def: 'OtherType',
       resolved?: true,
       resolved!: nil
     )
+  end
+
+  let(:context) do
+    double(
+      path: nil,
+      advance: nil
+    )
+  end
+
+  let(:instance) do
+    klass.new(type, :id, type)
+  end
+
+  let(:attribute) do
+    instance
   end
 
   describe '#eql?' do
@@ -120,11 +137,60 @@ describe klass do
     end
   end
 
-  describe '#satisfied_by?' do
-    it 'should pass call through onto types' do
-      expect(type).to receive(:satisfied_by?).at_least(:once)
+  describe '#validator_block' do
+    it 'accepts validator via block' do
+      value = double
+      proc = lambda do |listener|
+        attribute.validator_block(&listener)
+        attribute.validator.validate(value, attribute, context)
+      end
+      expect(&proc).to yield_with_args(value, attribute, context)
+    end
+  end
+
+  describe '#violations' do
+    it 'calls validator with provided value, self and context' do
       attribute = klass.new(type, :id, type)
-      expect(attribute.satisfied_by?(double)).to be true
+      value = double
+      validator = double
+      result = double
+      match = receive(:validate)
+        .with(value, attribute, context)
+        .and_return(result)
+      expect(validator).to(match)
+      attribute.validator = validator
+      expect(attribute.violations(value, context)).to eq(result)
+    end
+  end
+
+  describe '#valid?' do
+    it 'returns true if validator returns no violations' do
+      attribute.validator = double(validate: [])
+      expect(attribute.valid?(double, context)).to be true
+    end
+
+    it 'returns false if validator returns at least one violation' do
+      attribute.validator = double(validate: ['violation'])
+      expect(attribute.valid?(double, context)).to be false
+    end
+  end
+
+  describe '#valid!' do
+    it 'doesn\'t raise if validator returns no violations' do
+      attribute.validator = double(validate: [])
+      proc = lambda do
+        attribute.valid!(double, context)
+      end
+      expect(&proc).not_to raise_error
+    end
+
+    it 'raises validation error if validator returns at least one violation' do
+      validator = double(validate: ['violation'])
+      attribute.validator = validator
+      proc = lambda do
+        attribute.valid!(double, context)
+      end
+      expect(&proc).to raise_error(validation_error_class)
     end
   end
 end

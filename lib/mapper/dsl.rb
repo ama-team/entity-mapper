@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require_relative 'type/concrete'
 require_relative 'dsl/class_methods'
 
 module AMA
@@ -13,7 +12,7 @@ module AMA
             klass.singleton_class.instance_eval do
               include ClassMethods
             end
-            klass.mapper = Mapper.handler
+            klass.engine = Mapper.engine
           end
         end
       end

@@ -1,7 +1,11 @@
 # frozen_string_literal: true
 
-require_relative '../api/default/attribute_validator'
+# rubocop:disable Metrics/ClassLength
+
+require_relative '../handler/attribute/validator'
 require_relative '../mixin/errors'
+require_relative '../mixin/handler_support'
+require_relative 'parameter'
 
 module AMA
   module Entity
@@ -10,9 +14,10 @@ module AMA
         # Stores data about single type attribute
         class Attribute
           include Mixin::Errors
+          include Mixin::HandlerSupport
 
           # @!attribute
-          #   @return [AMA::Entity::Mapper::Type::Concrete]
+          #   @return [AMA::Entity::Mapper::Type]
           attr_accessor :owner
           # @!attribute
           #   @return [Symbol]
@@ -52,11 +57,17 @@ module AMA
           # @!attribute values
           #   @return [Array<Object>]
           attr_accessor :values
+          # @!attribute aliases
+          #   @return [Array<Symbol>]
+          attr_accessor :aliases
+
+          handler_namespace Handler::Attribute
+
           # Custom attribute validator
           #
           # @!attribute validator
           #   @return [API::AttributeValidator]
-          attr_accessor :validator
+          handler :validator, :validate
 
           def self.defaults
             {
@@ -65,11 +76,12 @@ module AMA
               default: nil,
               nullable: false,
               values: [],
-              validator: API::Default::AttributeValidator::INSTANCE
+              validator: nil,
+              aliases: []
             }
           end
 
-          # @param [Mapper::Type::Concrete] owner
+          # @param [Mapper::Type] owner
           # @param [Symbol] name
           # @param [Array<Mapper::Type>] types
           # @param [Hash<Symbol, Object] options
@@ -78,12 +90,25 @@ module AMA
             @name = validate_name!(name)
             @types = validate_types!(types)
             self.class.defaults.each do |key, value|
-              instance_variable_set("@#{key}", options.fetch(key, value))
+              value = options.fetch(key, value)
+              send("#{key}=", options.fetch(key, value)) unless value.nil?
             end
           end
 
-          def satisfied_by?(value)
-            @types.any? { |type| type.satisfied_by?(value) }
+          def violations(value, context)
+            validator.validate(value, self, context)
+          end
+
+          def valid?(value, context)
+            violations(value, context).empty?
+          end
+
+          def valid!(value, context)
+            violations = self.violations(value, context)
+            return if violations.empty?
+            repr = violations.join(', ')
+            message = "Attribute #{self} has failed validation: #{repr}"
+            validation_error(message, context: context)
           end
 
           def resolved?
@@ -91,9 +116,7 @@ module AMA
           end
 
           def resolved!(context = nil)
-            types.each do |type|
-              type.resolved!(context)
-            end
+            types.each { |type| type.resolved!(context) }
           end
 
           # @param [AMA::Entity::Mapper::Type] parameter
@@ -125,10 +148,18 @@ module AMA
             eql?(other)
           end
 
+          def to_def
+            types = @types ? @types.map(&:to_def).join(', ') : 'none'
+            message = "#{owner.type}.#{name}"
+            message += ':virtual' if virtual
+            "#{message}<#{types}>"
+          end
+
           def to_s
             message = "Attribute #{owner.type}.#{name}"
-            return message unless virtual
-            "#{message} (virtual)"
+            message = "#{message} (virtual)" if virtual
+            types = @types ? @types.map(&:to_def).join(', ') : 'none'
+            "#{message} <#{types}>"
           end
 
           private
@@ -149,7 +180,7 @@ module AMA
           def validate_types!(types)
             compliance_error("No types provided for #{self}") if types.empty?
             types.each do |type|
-              next if type.is_a?(Type)
+              next if type.is_a?(Type) || type.is_a?(Parameter)
               message = 'Provided type has to be a Type instance, ' \
                 "#{type.class} received"
               compliance_error(message)

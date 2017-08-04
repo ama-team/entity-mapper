@@ -6,3 +6,5 @@ set -vx
 bundle install
 
 # Do any other automated setup that you need to do here
+
+find .support/git/hooks -maxdepth 1 -type f -exec cp '{}' .git/hooks \;

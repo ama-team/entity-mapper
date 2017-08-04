@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require_relative '../type'
 require_relative '../mixin/errors'
 
 module AMA
@@ -9,9 +8,9 @@ module AMA
       class Type
         # This class represents parameter type - an unknown-until-runtime type
         # that belongs to particular other type. For example,
-        # Hash<Symbol, Integer> may be described as ConcreteType(Hash) with
+        # Hash<Symbol, Integer> may be described as Type(Hash) with
         # parameters _key: Symbol and _value: Integer
-        class Parameter < Type
+        class Parameter
           include Mixin::Errors
 
           # @!attribute type
@@ -28,10 +27,8 @@ module AMA
             @id = id
           end
 
-          %i[instance? satisfied_by?].each do |method|
-            define_method method do |_|
-              false
-            end
+          def instance?(_)
+            false
           end
 
           def resolve_parameter(*)
@@ -50,13 +47,21 @@ module AMA
             "Parameter #{owner.type}.#{id}"
           end
 
+          def to_def
+            "#{owner.type}.#{id}"
+          end
+
           def hash
             @owner.hash ^ @id.hash
           end
 
           def eql?(other)
             return false unless other.is_a?(self.class)
-            id == other.id && owner == other.owner
+            @id == other.id && @owner == other.owner
+          end
+
+          def ==(other)
+            eql?(other)
           end
         end
       end

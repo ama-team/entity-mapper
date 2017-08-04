@@ -1,7 +1,10 @@
 # frozen_string_literal: true
 
+require 'logger'
+
 require_relative 'path'
 require_relative 'mixin/reflection'
+require_relative 'aux/null_stream'
 
 module AMA
   module Entity
@@ -11,9 +14,15 @@ module AMA
       class Context
         include Mixin::Reflection
 
-        # @!attribute path
+        # @!attribute [r] path
         #   @return [AMA::Entity::Mapper::Path]
-        attr_accessor :path
+        attr_reader :path
+        # @!attribute [r] logger
+        #   @return [Logger]
+        attr_reader :logger
+        # @!attribute [r] strict
+        #   @return [FalseClass, TrueClass]
+        attr_reader :strict
 
         def initialize(**options)
           defaults = respond_to?(:defaults) ? self.defaults : {}
@@ -21,11 +30,15 @@ module AMA
           defaults.keys.each do |key|
             instance_variable_set("@#{key}", options[key])
           end
+          @logger = @logger.clone
+          @logger.progname = "#{Mapper} #{path}"
         end
 
         def defaults
           {
-            path: Path.new
+            path: Path.new,
+            logger: Logger.new(Aux::NullStream::INSTANCE),
+            strict: true
           }
         end
 
@@ -34,6 +47,7 @@ module AMA
         # @param [AMA::Entity::Mapper::Path::Segment, String, Symbol] segment
         # @return [AMA::Entity::Mapper::Context]
         def advance(segment)
+          return self if segment.nil?
           data = to_h.merge(path: path.push(segment))
           self.class.new(**data)
         end

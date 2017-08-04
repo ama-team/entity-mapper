@@ -1,20 +1,21 @@
 # frozen_string_literal: true
 
 require_relative '../../../../../lib/mapper/type/parameter'
-require_relative '../../../../../lib/mapper/exception/compliance_error'
+require_relative '../../../../../lib/mapper/error/compliance_error'
 
 klass = ::AMA::Entity::Mapper::Type::Parameter
-compliance_error_class = ::AMA::Entity::Mapper::Exception::ComplianceError
+compliance_error_class = ::AMA::Entity::Mapper::Error::ComplianceError
 
 describe klass do
   let(:dummy) do
     klass.new(double(type: Class.new), :id)
   end
 
-  describe '#satisfied_by?' do
-    it 'should return false for anything' do
-      expect(dummy.satisfied_by?(nil)).to be false
-    end
+  let(:context) do
+    double(
+      path: nil,
+      advance: nil
+    )
   end
 
   describe '#instance?' do
@@ -62,6 +63,12 @@ describe klass do
         klass.new(double(type: Class.new), :value).resolved!
       end
       expect(&proc).to raise_error(compliance_error_class)
+    end
+  end
+
+  describe '#to_def' do
+    it 'returns consistent definition' do
+      expect(klass.new(double(type: :A), :id).to_def).to eq('A.id')
     end
   end
 end

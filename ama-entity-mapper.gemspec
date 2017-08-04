@@ -6,9 +6,11 @@
 lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 
+require_relative 'lib/mapper/version'
+
 Gem::Specification.new do |spec|
   spec.name          = 'ama-entity-mapper'
-  spec.version       = '0.1.0'
+  spec.version       = AMA::Entity::Mapper::Version::VERSION
   spec.authors       = ['AMA Team']
   spec.email         = ['dev@amagroup.ru']
 
@@ -17,8 +19,8 @@ Gem::Specification.new do |spec|
   spec.homepage      = 'https://github.com/ama-team/ruby-entity-mapper'
   spec.license       = 'MIT'
 
-  spec.files         = `git ls-files -z`.split("\x0").reject do |f|
-    f.match(%r{^(test|spec|features)/})
+  spec.files         = `git ls-files -z`.split("\x0").select do |f|
+    f.match(%r{^(lib/|docs/.*\.md)})
   end
   spec.bindir        = 'exe'
   spec.executables   = []

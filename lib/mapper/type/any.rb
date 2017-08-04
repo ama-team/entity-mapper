@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative 'concrete'
+require_relative '../type'
 require_relative '../mixin/errors'
 
 module AMA
@@ -8,11 +8,14 @@ module AMA
     class Mapper
       class Type
         # Used as a wildcard to pass anything through
-        class Any < Concrete
+        class Any < Type
           include Mixin::Errors
 
           def initialize
             super(self.class)
+            denormalizer_block { |entity, *| entity }
+            normalizer_block { |entity, *| entity }
+            validator_block { |*| [] }
           end
 
           INSTANCE = new
@@ -33,12 +36,8 @@ module AMA
             self
           end
 
-          def instance?(*)
-            true
-          end
-
-          def violations(*)
-            []
+          def instance?(object, *)
+            !object.nil?
           end
 
           def hash
@@ -54,6 +53,10 @@ module AMA
           end
 
           def to_s
+            'Any Type'
+          end
+
+          def to_def
             '*'
           end
         end

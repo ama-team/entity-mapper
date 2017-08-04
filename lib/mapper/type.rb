@@ -1,62 +1,143 @@
 # frozen_string_literal: true
 
-# rubocop:disable Lint/UnusedMethodArgument
+# rubocop:disable Metrics/ClassLength
 
 require_relative 'mixin/errors'
+require_relative 'mixin/reflection'
+require_relative 'mixin/handler_support'
 require_relative 'context'
+require_relative 'type/parameter'
+require_relative 'type/attribute'
+require_relative 'handler/entity/normalizer'
+require_relative 'handler/entity/denormalizer'
+require_relative 'handler/entity/enumerator'
+require_relative 'handler/entity/injector'
+require_relative 'handler/entity/factory'
+require_relative 'handler/entity/validator'
 
 module AMA
   module Entity
     class Mapper
-      # Base abstract class for all other types
+      # Type wrapper
       class Type
         include Mixin::Errors
+        include Mixin::Reflection
+        include Mixin::HandlerSupport
 
-        # :nocov:
-        def initialize
-          message = "#{self.class} is an abstract class " \
-            'and can\'t be isntantiated directly'
-          compliance_error(message)
+        # @!attribute type
+        #   @return [Class]
+        attr_accessor :type
+        # @!attribute parameters
+        #   @return [Hash{Symbol, AMA::Entity::Mapper::Type::Parameter}]
+        attr_accessor :parameters
+        # @!attribute attributes
+        #   @return [Hash{Symbol, AMA::Entity::Mapper::Type::Attribute}]
+        attr_accessor :attributes
+        # @!attribute virtual
+        #   @return [TrueClass, FalseClass]
+        attr_accessor :virtual
+
+        handler_namespace Handler::Entity
+
+        # @!attribute factory
+        #   @return [AMA::Entity::Mapper::Handler::Entity::Factory]
+        handler :factory, :create
+        # @!attribute normalizer
+        #   @return [AMA::Entity::Mapper::Handler::Entity::Normalizer]
+        handler :normalizer, :normalize
+        # @!attribute denormalizer
+        #   @return [AMA::Entity::Mapper::Handler::Entity::Denormalizer]
+        handler :denormalizer, :denormalize
+        # @!attribute enumerator
+        #   @return [AMA::Entity::Mapper::Handler::Entity::Enumerator]
+        handler :enumerator, :enumerate
+        # @!attribute injector
+        #   @return [AMA::Entity::Mapper::Handler::Entity::Injector]
+        handler :injector, :inject
+        # @!attribute injector
+        #   @return [AMA::Entity::Mapper::Handler::Entity::Validator]
+        handler :validator, :validate
+
+        # @param [Class, Module] klass
+        def initialize(klass, virtual: false)
+          @type = validate_type!(klass)
+          @parameters = {}
+          @attributes = {}
+          @virtual = virtual
         end
-        # :nocov:
 
-        # @return [Hash{Symbol, AMA::Entity::Mapper::Type::Attribute}]
-        def attributes
-          {}
-        end
-
-        # @return [Hash{Symbol, AMA::Entity::Mapper::Type}]
-        def parameters
-          {}
-        end
-
-        # @param [Symbol] id
+        # Tells if provided object is an instance of this type.
+        #
+        # This doesn't mean all of it's attributes do match requested types.
+        #
+        # @param [Object] object
         # @return [TrueClass, FalseClass]
-        def attribute?(id)
-          attributes.key?(id.to_sym)
+        def instance?(object)
+          object.is_a?(@type)
         end
 
-        # @param [Symbol] id
+        def instance!(object, context)
+          return if instance?(object)
+          message = "Provided object #{object} is not an instance of #{self}"
+          validation_error(message, context: context)
+        end
+
         # @return [TrueClass, FalseClass]
-        def parameter?(id)
-          parameters.key?(id.to_sym)
+        def resolved?
+          attributes.values.all?(&:resolved?)
         end
 
-        # :nocov:
-        # Creates parameter if it doesn't yet exist and returns it
+        # Validates that type is fully resolved, otherwise raises an error
+        # @param [AMA::Entity::Mapper::Context] context
+        def resolved!(context = Context.new)
+          attributes.values.each { |attribute| attribute.resolved!(context) }
+        end
+
+        # Shortcut for attribute creation.
+        #
+        # @param [String, Symbol] name
+        # @param [Array<AMA::Entity::Mapper::Type>] types
+        # @param [Hash] options
+        def attribute!(name, *types, **options)
+          name = name.to_sym
+          types = types.map do |type|
+            next type if type.is_a?(Parameter)
+            next parameter!(type) if type.is_a?(Symbol)
+            next self.class.new(type) unless type.is_a?(Type)
+            type
+          end
+          attributes[name] = Attribute.new(self, name, *types, **options)
+        end
+
+        # Creates new type parameter
         #
         # @param [Symbol] id
+        # @return [Parameter]
         def parameter!(id)
-          abstract_method
+          id = id.to_sym
+          return @parameters[id] if @parameters.key?(id)
+          @parameters[id] = Parameter.new(self, id)
         end
 
-        # @param [AMA::Entity::Mapper::Type] parameter
-        # @param [AMA::Entity::Mapper::Type] substitution
-        # @return [AMA::Entity::Mapper::Type]
+        # Resolves single parameter type. Substitution may be either another
+        # parameter or array of types.
+        #
+        # @param [Parameter] parameter
+        # @param [Parameter, Array<Type>] substitution
         def resolve_parameter(parameter, substitution)
-          abstract_method
+          parameter = validate_parameter!(parameter)
+          substitution = validate_substitution!(substitution)
+          clone.tap do |clone|
+            intermediate = attributes.map do |key, value|
+              [key, value.resolve_parameter(parameter, substitution)]
+            end
+            clone.attributes = Hash[intermediate]
+            intermediate = clone.parameters.map do |key, value|
+              [key, value == parameter ? substitution : value]
+            end
+            clone.parameters = Hash[intermediate]
+          end
         end
-        # :nocov:
 
         # rubocop:disable Metrics/LineLength
 
@@ -70,92 +151,92 @@ module AMA
 
         # rubocop:enable Metrics/LineLength
 
-        # @return [TrueClass, FalseClass]
-        def resolved?
-          attributes.values.all?(&:resolved?)
-        end
-
-        # Validates that type is fully resolved, otherwise raises an error
-        # @param [AMA::Entity::Mapper::Context] context
-        def resolved!(context = nil)
-          context ||= Context.new
-          attributes.values.each do |attribute|
-            attribute.resolved!(context)
-          end
-        end
-
-        # :nocov:
-        # @param [Object] object
-        def instance?(object)
-          abstract_method
-        end
-        # :nocov:
-
-        # @param [Object] object
-        # @param [AMA::Entity::Mapper::Context] context
-        def instance!(object, context = nil)
-          return if instance?(object)
-          message = "Expected to receive instance of #{self}, got " \
-            "#{object.class}"
-          validation_error(message, context: context)
+        def violations(object, context)
+          validator.validate(object, self, context)
         end
 
         def valid?(object, context)
-          instance?(object) && violations(object, context).empty?
+          violations(object, context).empty?
         end
 
         def valid!(object, context)
-          instance!(object, context)
           violations = self.violations(object, context)
           return if violations.empty?
-          message = 'Validation failed, following violations were discovered: '
-          violations = violations.map do |attribute, violation, segment|
-            "[#{attribute}: #{violation} (#{segment})]"
-          end
-          message += violations.join(', ')
+          message = "#{object} has failed type #{to_def} validation: " \
+            "#{violations.join(', ')}"
           validation_error(message, context: context)
         end
 
-        # :nocov:
-        # @deprecated
-        def satisfied_by?(object)
-          abstract_method
-        end
-
-        def violations(object, context)
-          abstract_method
-        end
-
         def hash
-          abstract_method
+          @type.hash ^ @attributes.hash
         end
 
         def eql?(other)
-          abstract_method
+          return false unless other.is_a?(self.class)
+          @type == other.type && @attributes == other.attributes
         end
-        # :nocov:
 
         def ==(other)
           eql?(other)
         end
 
-        # :nocov:
         def to_s
-          abstract_method
+          message = "Type #{@type}"
+          unless @parameters.empty?
+            message += " (parameters: #{@parameters.keys})"
+          end
+          message
         end
-        # :nocov:
 
-        protected
-
-        # :nocov:
-        # rubocop:disable Performance/Caller
-        def abstract_method
-          message = "Abstract method #{caller[1]} hasn't been implemented " \
-            "in class #{self.class}"
-          raise message
+        def to_def
+          return @type.to_s if parameters.empty?
+          params = parameters.map do |key, value|
+            value = [value] unless value.is_a?(Enumerable)
+            value = value.map(&:to_def)
+            value = value.size > 1 ? "[#{value.join(', ')}]" : value.first
+            "#{key}:#{value}"
+          end
+          "#{@type}<#{params.join(', ')}>"
         end
-        # rubocop:enable Performance/Caller
-        # :nocov:
+
+        private
+
+        def validate_type!(type)
+          return type if type.is_a?(Class) || type.is_a?(Module)
+          message = 'Expected Type to be instantiated with ' \
+              "Class/Module instance, got #{type}"
+          compliance_error(message)
+        end
+
+        def validate_parameter!(parameter)
+          return parameter if parameter.is_a?(Parameter)
+          message = "Non-parameter type #{parameter} " \
+              'supplied for resolution'
+          compliance_error(message)
+        end
+
+        def validate_substitution!(substitution)
+          return substitution if substitution.is_a?(Parameter)
+          substitution = [substitution] if substitution.is_a?(self.class)
+          if substitution.is_a?(Enumerable)
+            return validate_substitutions!(substitution)
+          end
+          message = 'Provided substitution is neither another Parameter ' \
+              'or Array of Types: ' \
+              "#{substitution} (#{substitution.class})"
+          compliance_error(message)
+        end
+
+        def validate_substitutions!(substitutions)
+          if substitutions.empty?
+            compliance_error('Empty list of substitutions passed')
+          end
+          invalid = substitutions.reject do |substitution|
+            substitution.is_a?(Type)
+          end
+          return substitutions if invalid.empty?
+          compliance_error("Invalid substitutions supplied: #{invalid}")
+        end
       end
     end
   end

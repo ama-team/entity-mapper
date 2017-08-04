@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
 require_relative '../../../../../lib/mapper/type/registry'
-require_relative '../../../../../lib/mapper/type/concrete'
-require_relative '../../../../../lib/mapper/exception/compliance_error'
+require_relative '../../../../../lib/mapper/type'
+require_relative '../../../../../lib/mapper/error/compliance_error'
 
 klass = ::AMA::Entity::Mapper::Type::Registry
-type_klass = ::AMA::Entity::Mapper::Type::Concrete
-compliance_error_klass = ::AMA::Entity::Mapper::Exception::ComplianceError
+type_klass = ::AMA::Entity::Mapper::Type
+compliance_error_klass = ::AMA::Entity::Mapper::Error::ComplianceError
 
 describe klass do
   let(:top) do
@@ -146,17 +146,17 @@ describe klass do
     end
   end
 
-  describe '#include?' do
+  describe '#resolvable?' do
     it 'should return true for registered class' do
-      expect(registry.include?(bottom)).to be(true)
+      expect(registry.resolvable?(bottom)).to be(true)
     end
 
     it 'should return true for class having registered ancestor' do
-      expect(registry.include?(unregistered_descendant)).to be(true)
+      expect(registry.resolvable?(unregistered_descendant)).to be(true)
     end
 
     it 'should return false for class that doesn\'t have any registered ancestors' do
-      expect(registry.include?(Class.new)).to be(false)
+      expect(registry.resolvable?(Class.new)).to be(false)
     end
   end
 end
