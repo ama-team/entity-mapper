@@ -1,6 +1,9 @@
 # Testing
 .rspec_status
 
+# Build Artifacts
+*.gem
+
 # IDE files
 /.idea
 

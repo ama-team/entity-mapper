@@ -7,3 +7,6 @@ Metrics/AbcSize:
   Max: 20
 Layout/MultilineMethodCallIndentation:
   Enabled: false
+# disabled for ama-entity-mapper.rb
+Style/FileName:
+  Enabled: false
