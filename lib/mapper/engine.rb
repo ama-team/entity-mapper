@@ -8,6 +8,7 @@ require_relative 'mixin/suppression_support'
 require_relative 'type'
 require_relative 'type/registry'
 require_relative 'type/resolver'
+require_relative 'type/analyzer'
 require_relative 'engine/recursive_mapper'
 require_relative 'engine/recursive_normalizer'
 
@@ -58,7 +59,7 @@ module AMA
 
         # @param [Class, Module] klass
         def register(klass)
-          @registry[klass] || @registry.register(Type.new(klass))
+          @registry[klass] || @registry.register(Type::Analyzer.analyze(klass))
         end
 
         # @param [Class, Module] klass

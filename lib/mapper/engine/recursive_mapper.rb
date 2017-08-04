@@ -6,6 +6,7 @@ require_relative '../mixin/suppression_support'
 require_relative '../mixin/errors'
 require_relative '../error'
 require_relative '../type'
+require_relative '../type/analyzer'
 
 module AMA
   module Entity
@@ -156,7 +157,8 @@ module AMA
           def reassemble(source, type, context)
             message = "Reassembling #{source.class} as #{type.type}"
             context.logger.debug(message)
-            source_type = @registry.find(source.class) || Type.new(source.class)
+            source_type = @registry.find(source.class)
+            source_type ||= Type::Analyzer.analyze(source.class)
             normalizer = source_type.normalizer
             normalized = normalizer.normalize(source, source_type, context)
             [type.denormalizer.denormalize(normalized, type, context), true]

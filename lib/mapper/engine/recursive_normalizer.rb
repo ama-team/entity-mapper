@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative '../type'
+require_relative '../type/analyzer'
 
 module AMA
   module Entity
@@ -64,7 +65,7 @@ module AMA
           # @param [Class, Module] klass
           # @return [AMA::Entity::Mapper::Type]
           def find_type(klass)
-            @registry.find(klass) || Type.new(klass)
+            @registry.find(klass) || Type::Analyzer.analyze(klass)
           end
         end
       end

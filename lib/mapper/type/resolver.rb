@@ -69,7 +69,7 @@ module AMA
           def find_type(type)
             return type if type.is_a?(Type)
             if type.is_a?(Class) || type.is_a?(Module)
-              return @registry[type] || Type.new(type)
+              return @registry[type] || Type::Analyzer.analyze(type)
             end
             message = 'Invalid type provided for resolution, expected Type, ' \
               "Class or Module: #{type}"

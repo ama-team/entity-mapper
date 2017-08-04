@@ -13,6 +13,9 @@ module AMA
 
           def initialize
             super(self.class)
+            denormalizer_block { |entity, *| entity }
+            normalizer_block { |entity, *| entity }
+            validator_block { |*| [] }
           end
 
           INSTANCE = new
