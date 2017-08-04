@@ -4,6 +4,7 @@
 
 require_relative '../handler/attribute/validator'
 require_relative '../mixin/errors'
+require_relative '../mixin/reflection'
 require_relative '../mixin/handler_support'
 require_relative 'parameter'
 
@@ -14,6 +15,7 @@ module AMA
         # Stores data about single type attribute
         class Attribute
           include Mixin::Errors
+          include Mixin::Reflection
           include Mixin::HandlerSupport
 
           # @!attribute
@@ -91,7 +93,9 @@ module AMA
             @types = validate_types!(types)
             self.class.defaults.each do |key, value|
               value = options.fetch(key, value)
-              send("#{key}=", options.fetch(key, value)) unless value.nil?
+              unless value.nil?
+                set_object_attribute(self, key, options.fetch(key, value))
+              end
             end
           end
 
