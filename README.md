@@ -1,7 +1,3 @@
-# Draft warning
-
-This is work-in-progress project, nothing has been finished yet.
-
 # AMA::Entity::Mapper
 
 [![Gem][shields.gem]][gem]
