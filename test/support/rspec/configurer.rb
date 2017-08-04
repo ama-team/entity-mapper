@@ -49,6 +49,7 @@ module AMA
                 sources = sources_pattern
                 ::Coveralls.wear_merged! do
                   add_filter 'test'
+                  add_filter 'lib/mapper/version'
                   coverage_dir target_dir
                   command_name "rspec:#{test_type}"
                   self.formatters = [
