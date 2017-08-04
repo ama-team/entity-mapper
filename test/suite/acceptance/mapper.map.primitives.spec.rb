@@ -8,7 +8,6 @@ require_relative '../../../lib/mapper/error/mapping_error'
 
 klass = ::AMA::Entity::Mapper
 dsl_class = ::AMA::Entity::Mapper::DSL
-context_class = ::AMA::Entity::Mapper::Context
 any_type = ::AMA::Entity::Mapper::Type::Any::INSTANCE
 mapping_error_class = ::AMA::Entity::Mapper::Error::MappingError
 
@@ -41,10 +40,6 @@ describe klass do
             'Container'
           end
         end
-      end
-
-      let(:ctx) do
-        context_class.new(logger: logger)
       end
 
       variants = {

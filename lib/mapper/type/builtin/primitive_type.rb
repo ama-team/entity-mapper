@@ -2,6 +2,7 @@
 
 require_relative '../../type'
 require_relative '../../mixin/errors'
+require_relative 'primitive_type/denormalizer'
 
 module AMA
   module Entity
@@ -12,7 +13,7 @@ module AMA
           class PrimitiveType < Type
             include Mixin::Errors
 
-            def initialize(type, *methods, &denormalizer)
+            def initialize(type, method_map)
               super(type)
               this = self
 
@@ -22,53 +23,35 @@ module AMA
               normalizer_block do |entity, *|
                 entity
               end
-              denormalizer = default_denormalizer(methods) unless denormalizer
-              denormalizer_block(&denormalizer)
+              self.denormalizer = Denormalizer.new(method_map)
               enumerator_block do |*|
                 Enumerator.new { |*| }
               end
               injector_block { |*| }
             end
 
-            private
-
-            def default_denormalizer(methods)
-              lambda do |input, type, context|
-                break input if type.valid?(input, context)
-                candidate = methods.reduce(nil) do |carrier, method|
-                  next carrier if carrier || !input.respond_to?(method)
-                  input.send(method)
-                end
-                break candidate if candidate
-                message = "Can't create #{type} instance from #{input.class}"
-                type.mapping_error(message, context: context)
-              end
-            end
-
+            # This hash describes which helper methods may be used for which
+            # type to extract target primitive. During the run inheritance chain
+            # is unwrapped, and first matching entry (topmost one) is used.
             primitives = {
-              Symbol => %i[to_sym],
-              String => [],
-              Numeric => %i[to_i to_f],
-              Integer => %i[to_i],
-              Float => %i[to_f],
-              TrueClass => %i[to_bool],
-              FalseClass => %i[to_bool],
-              NilClass => []
+              Symbol => { Object => [], String => %i[to_sym] },
+              String => { Object => [], Symbol => %i[to_s] },
+              Numeric => { Object => %i[to_i to_f], String => [] },
+              Integer => { Object => %i[to_i], String => [] },
+              Float => { Object => %i[to_f], String => [] },
+              TrueClass => { Object => %i[to_b to_bool], String => [] },
+              FalseClass => { Object => %i[to_b to_bool], String => [] },
+              NilClass => { Object => [] }
             }
 
             # rubocop:disable Lint/UnifiedInteger
-            primitives[Fixnum] = %i[to_i] if defined?(Fixnum)
+            if defined?(Fixnum)
+              primitives[Fixnum] = { Object => %i[to_i], String => [] }
+            end
             # rubocop:enable Lint/UnifiedInteger
 
-            ALL = primitives.map do |klass, methods|
-              const_set(klass.to_s.upcase, new(klass, *methods))
-            end
-
-            STRING.denormalizer_block do |input, type, context|
-              input = input.to_s if input.is_a?(Symbol)
-              break input if input.is_a?(String)
-              message = "Can't create #{type} instance from #{input.class}"
-              type.mapping_error(message, context: context)
+            ALL = primitives.map do |klass, method_map|
+              const_set(klass.to_s.upcase, new(klass, method_map))
             end
           end
         end

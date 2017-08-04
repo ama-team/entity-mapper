@@ -26,6 +26,13 @@ describe klass do
         end
         expect(&proc).to raise_error(mapping_error_class)
       end
+
+      it 'fails to map string to integer' do
+        proc = lambda do
+          klass.map('test', Integer, logger: logger)
+        end
+        expect(&proc).to raise_error(mapping_error_class)
+      end
     end
   end
 end
