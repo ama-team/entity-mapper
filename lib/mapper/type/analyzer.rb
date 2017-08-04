@@ -16,7 +16,7 @@ module AMA
             writers = klass.instance_methods.grep(/\w+=$/)
             writers.map do |writer|
               attribute = writer[0..-2]
-              type.attribute!(attribute, Type::Any::INSTANCE)
+              type.attribute!(attribute, Type::Any::INSTANCE, nullable: true)
             end
             type
           end

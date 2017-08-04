@@ -8,6 +8,8 @@ require_relative 'builtin/hash_type'
 require_relative 'builtin/hash_tuple_type'
 require_relative 'builtin/set_type'
 require_relative 'builtin/primitive_type'
+require_relative 'builtin/rational_type'
+require_relative 'builtin/datetime_type'
 
 module AMA
   module Entity

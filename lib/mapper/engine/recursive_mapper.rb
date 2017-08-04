@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# rubocop:disable Metrics/ClassLength
-
 require_relative '../mixin/suppression_support'
 require_relative '../mixin/errors'
 require_relative '../error'
@@ -142,11 +140,7 @@ module AMA
           # @param [AMA::Entity::Mapper::Context] context
           # @return [Array<Object, TrueClass, FalseClass>]
           def request_reassembly(source, type, context)
-            if type.instance?(source)
-              msg = "Not reassembling #{source.class}, already of target type"
-              context.logger.debug(msg)
-              return [source, false]
-            end
+            # TODO: make reassembly optional
             reassemble(source, type, context)
           end
 

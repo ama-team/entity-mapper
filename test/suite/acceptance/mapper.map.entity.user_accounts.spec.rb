@@ -37,14 +37,14 @@ describe klass do
         factory.call('PublicKey') do
           attribute :id, Symbol
           attribute :owner, Symbol
-          attribute :content, String, sensitive: true
+          attribute :content, String, sensitive: true, nullable: true
           attribute :digest, Integer, NilClass, nullable: true
           attribute :type, Symbol, values: %i[ssh-rsa ssh-dss], default: :'ssh-rsa'
           attribute :comment, Symbol, NilClass
 
           def content=(content)
             @content = content
-            @digest = content.size
+            @digest = content.size unless content.nil?
           end
 
           denormalizer_block do |input, type, context, &block|
@@ -83,7 +83,7 @@ describe klass do
         factory.call('PrivateKey') do
           attribute :id, Symbol
           attribute :owner, Symbol
-          attribute :content, String, sensitive: true
+          attribute :content, String, sensitive: true, nullable: true
           attribute :digest, Integer, NilClass, nullable: true
           attribute :hosts, [Hash, K: Symbol, V: private_key_host], default: {}
 
@@ -99,7 +99,7 @@ describe klass do
 
           def content=(content)
             @content = content
-            @digest = content.size
+            @digest = content.size unless content.nil?
           end
         end
       end

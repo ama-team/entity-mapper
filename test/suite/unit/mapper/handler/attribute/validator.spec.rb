@@ -19,17 +19,18 @@ describe klass do
     klass.wrap(mock)
   end
 
+  let(:type) do
+    double(instance?: true, to_def: '(Virtual Type)')
+  end
+
   let(:attribute) do
     double(
       nullable: false,
-      types: [double(instance?: true)],
+      types: [type],
       values: [],
-      default: nil
+      default: nil,
+      to_def: '(Virtual Attribute)'
     )
-  end
-
-  let(:type) do
-    double(instance?: true)
   end
 
   let(:context) do

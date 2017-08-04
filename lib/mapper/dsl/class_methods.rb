@@ -19,16 +19,20 @@ module AMA
         module ClassMethods
           include Mixin::Reflection
 
-          attr_reader :engine
-
           def engine=(engine)
             @engine = engine
             engine.register(self)
+            engine
+          end
+
+          def engine
+            self.engine = Mapper.engine unless @engine
+            @engine
           end
 
           # @return [AMA::Entity::Mapper::Type]
           def bound_type
-            @engine[self]
+            engine[self]
           end
 
           # @param [String, Symbol] name
@@ -42,11 +46,7 @@ module AMA
           # @option options [Array] values
           # @return [AMA::Entity::Mapper::Type::Attribute]
           def attribute(name, *types, **options)
-            types = types.map do |type|
-              next parameter(type) if type.is_a?(Symbol) || type.is_a?(String)
-              next type if type.is_a?(Type::Parameter)
-              @engine.resolve(type)
-            end
+            types = types.map(&method(:resolve_type))
             types = [Type::Any::INSTANCE] if types.empty?
             bound_type.attribute!(name, *types, **options)
             define_method(name) do
@@ -83,6 +83,15 @@ module AMA
             define_method "#{name}_block" do |&block|
               send(setter_name, method_object(method_name, &block))
             end
+          end
+
+          private
+
+          def resolve_type(type)
+            return Type::Any::INSTANCE if type.nil? || type == :*
+            return parameter(type) if type.is_a?(Symbol) || type.is_a?(String)
+            return type if type.is_a?(Type::Parameter)
+            engine.resolve(type)
           end
         end
       end

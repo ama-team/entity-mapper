@@ -11,11 +11,16 @@ describe klass do
     klass::INSTANCE
   end
 
+  let(:default_value) do
+    double
+  end
+
   let(:attributes) do
     {
       value: double(
         name: :value,
-        virtual: false
+        virtual: false,
+        default: default_value
       ),
       virtual: double(
         name: :virtual,
@@ -59,20 +64,23 @@ describe klass do
       expect(&proc).to yield_with_args([attributes[:value], value, anything])
     end
 
-    it 'skips attributes without a value' do
-      proc = lambda do |listener|
-        enumerator.enumerate(entity, type, context).each(&listener)
-      end
-      expect(&proc).not_to yield_control
-    end
-
     it 'skips virtual attributes' do
       value = double
       entity.instance_variable_set(:@virtual, value)
       proc = lambda do |listener|
         enumerator.enumerate(entity, type, context).each(&listener)
       end
-      expect(&proc).not_to yield_control
+      expectation = [attributes[:virtual], value, anything]
+      expect(&proc).not_to yield_with_args(expectation)
+    end
+
+    it 'lists default values for missing attributes' do
+      # TODO: probably, default values should be set in factory only
+      proc = lambda do |listener|
+        enumerator.enumerate(entity, type, context).each(&listener)
+      end
+      expectation = [attributes[:value], default_value, anything]
+      expect(&proc).to yield_with_args(expectation)
     end
   end
 

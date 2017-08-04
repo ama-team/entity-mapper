@@ -4,6 +4,7 @@ require_relative 'mapper/version'
 require_relative 'mapper/engine'
 require_relative 'mapper/type'
 require_relative 'mapper/type/registry'
+require_relative 'mapper/dsl'
 
 module AMA
   module Entity

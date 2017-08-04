@@ -21,8 +21,10 @@ module AMA
               ::Enumerator.new do |yielder|
                 type.attributes.values.each do |attribute|
                   next if attribute.virtual
-                  next unless object_variable_exists(entity, attribute.name)
-                  value = object_variable(entity, attribute.name)
+                  value = attribute.default
+                  if object_variable_exists(entity, attribute.name)
+                    value = object_variable(entity, attribute.name)
+                  end
                   segment = Path::Segment.attribute(attribute.name)
                   yielder << [attribute, value, segment]
                 end

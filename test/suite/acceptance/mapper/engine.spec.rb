@@ -67,25 +67,6 @@ describe klass do
   end
 
   describe '#map' do
-    describe '> pass-through' do
-      candidates = {
-        :symbol => [Symbol],
-        'String' => [String],
-        { x: 12 } => [Hash, K: Symbol, V: Integer],
-        Class.new => [Class],
-        false => [FalseClass],
-        true => [TrueClass],
-        nil => [NilClass],
-        [:alpha, 'beta', 3] => [Enumerable, T: any_type],
-        Set.new([:whoa]) => [Set, T: Symbol]
-      }
-      candidates.each do |data, type|
-        it "should map #{data.inspect} to itself" do
-          expect(engine.map(data, type)).to equal(data)
-        end
-      end
-    end
-
     describe '> multi-type' do
       [true, false].each do |value|
         it "should map #{value} to [TrueClass, FalseClass]" do

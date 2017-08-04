@@ -29,7 +29,8 @@ module AMA
               end
               if invalid_type?(value, attribute)
                 return "Provided value doesn't conform to " \
-                  "any of attribute #{attribute} types (#{attribute.types})"
+                  "any of attribute #{attribute} types " \
+                  "(#{attribute.types.map(&:to_def).join(', ')})"
               end
               return unless illegal_value?(value, attribute)
               "Provided value doesn't match default value (#{value})" \

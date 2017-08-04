@@ -68,6 +68,7 @@ module AMA
 
           def find_type(type)
             return type if type.is_a?(Type)
+            return Type::Any::INSTANCE if [:*, '*'].include?(type)
             if type.is_a?(Class) || type.is_a?(Module)
               return @registry[type] || Type::Analyzer.analyze(type)
             end

@@ -66,7 +66,10 @@ module AMA
 
             def define_normalizer
               normalizer_block do |entity, *|
-                entity.clone
+                intermediate = entity.map do |key, value|
+                  [key, value]
+                end
+                Hash[intermediate]
               end
             end
 
