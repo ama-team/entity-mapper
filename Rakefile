@@ -85,7 +85,7 @@ task :gemspec do
 end
 
 task :jekyll do
-  sh 'bundle exec jekyll serve -s docs/ -d docs/_site/'
+  sh 'bundle exec jekyll serve -s docs/ -d docs/_site/ --baseurl /entity-mapper'
 end
 
 task :default do
