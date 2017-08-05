@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative '../../../../../lib/mapper/path/segment'
+require_relative '../../../../../lib/ama-entity-mapper/path/segment'
 
 klass = ::AMA::Entity::Mapper::Path::Segment
 

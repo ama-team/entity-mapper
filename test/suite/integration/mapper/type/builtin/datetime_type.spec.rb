@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require_relative '../../../../../../lib/mapper/type/builtin/datetime_type'
-require_relative '../../../../../../lib/mapper/error/compliance_error'
-require_relative '../../../../../../lib/mapper/context'
+require_relative '../../../../../../lib/ama-entity-mapper/type/builtin/datetime_type'
+require_relative '../../../../../../lib/ama-entity-mapper/error/compliance_error'
+require_relative '../../../../../../lib/ama-entity-mapper/context'
 
 klass = ::AMA::Entity::Mapper::Type::BuiltIn::DateTimeType
 compliance_error_class = ::AMA::Entity::Mapper::Error::ComplianceError

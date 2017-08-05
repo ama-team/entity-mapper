@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require_relative '../../../../../../../lib/mapper/type/builtin/primitive_type/denormalizer'
-require_relative '../../../../../../../lib/mapper/error/mapping_error'
+require_relative '../../../../../../../lib/ama-entity-mapper/type/builtin/primitive_type/denormalizer'
+require_relative '../../../../../../../lib/ama-entity-mapper/error/mapping_error'
 
 klass = ::AMA::Entity::Mapper::Type::BuiltIn::PrimitiveType::Denormalizer
 mapping_error_class = ::AMA::Entity::Mapper::Error::MappingError

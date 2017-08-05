@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative '../../../../../../lib/mapper/handler/entity/validator'
+require_relative '../../../../../../lib/ama-entity-mapper/handler/entity/validator'
 
 klass = ::AMA::Entity::Mapper::Handler::Entity::Validator
 compliance_error_class = ::AMA::Entity::Mapper::Error::ComplianceError

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require_relative '../../../../../lib/mapper/type/registry'
-require_relative '../../../../../lib/mapper/type'
+require_relative '../../../../../lib/ama-entity-mapper/type/registry'
+require_relative '../../../../../lib/ama-entity-mapper/type'
 
 klass = ::AMA::Entity::Mapper::Type::Registry
 type_class = ::AMA::Entity::Mapper::Type

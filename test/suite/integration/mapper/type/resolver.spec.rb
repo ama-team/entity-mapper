@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require_relative '../../../../../lib/mapper/type'
-require_relative '../../../../../lib/mapper/type/resolver'
-require_relative '../../../../../lib/mapper/type/registry'
-require_relative '../../../../../lib/mapper/type/any'
-require_relative '../../../../../lib/mapper/error/compliance_error'
+require_relative '../../../../../lib/ama-entity-mapper/type'
+require_relative '../../../../../lib/ama-entity-mapper/type/resolver'
+require_relative '../../../../../lib/ama-entity-mapper/type/registry'
+require_relative '../../../../../lib/ama-entity-mapper/type/any'
+require_relative '../../../../../lib/ama-entity-mapper/error/compliance_error'
 
 klass = ::AMA::Entity::Mapper::Type::Resolver
 type_class = ::AMA::Entity::Mapper::Type

@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require_relative '../../../lib/mapper'
-require_relative '../../../lib/mapper/dsl'
-require_relative '../../../lib/mapper/type/any'
-require_relative '../../../lib/mapper/mixin/reflection'
+require_relative '../../../lib/ama-entity-mapper'
+require_relative '../../../lib/ama-entity-mapper/dsl'
+require_relative '../../../lib/ama-entity-mapper/type/any'
+require_relative '../../../lib/ama-entity-mapper/mixin/reflection'
 
 klass = ::AMA::Entity::Mapper
 

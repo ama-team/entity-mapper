@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require_relative '../../../lib/mapper'
-require_relative '../../../lib/mapper/type/any'
-require_relative '../../../lib/mapper/error/mapping_error'
-require_relative '../../../lib/mapper/error/compliance_error'
+require_relative '../../../lib/ama-entity-mapper'
+require_relative '../../../lib/ama-entity-mapper/type/any'
+require_relative '../../../lib/ama-entity-mapper/error/mapping_error'
+require_relative '../../../lib/ama-entity-mapper/error/compliance_error'
 
 klass = ::AMA::Entity::Mapper
 compliance_error_class = ::AMA::Entity::Mapper::Error::ComplianceError

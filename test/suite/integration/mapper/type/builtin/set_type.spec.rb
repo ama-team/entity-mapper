@@ -2,8 +2,8 @@
 
 require 'set'
 
-require_relative '../../../../../../lib/mapper/type/builtin/set_type'
-require_relative '../../../../../../lib/mapper/error/mapping_error'
+require_relative '../../../../../../lib/ama-entity-mapper/type/builtin/set_type'
+require_relative '../../../../../../lib/ama-entity-mapper/error/mapping_error'
 
 klass = ::AMA::Entity::Mapper::Type::BuiltIn::SetType
 mapping_error_class = ::AMA::Entity::Mapper::Error::MappingError

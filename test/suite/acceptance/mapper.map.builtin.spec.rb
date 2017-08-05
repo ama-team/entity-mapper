@@ -2,8 +2,8 @@
 
 require 'date'
 
-require_relative '../../../lib/mapper'
-require_relative '../../../lib/mapper/error/mapping_error'
+require_relative '../../../lib/ama-entity-mapper'
+require_relative '../../../lib/ama-entity-mapper/error/mapping_error'
 
 klass = ::AMA::Entity::Mapper
 mapping_error_class = ::AMA::Entity::Mapper::Error::MappingError

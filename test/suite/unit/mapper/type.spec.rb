@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require_relative '../../../../lib/mapper/type'
-require_relative '../../../../lib/mapper/error/validation_error'
-require_relative '../../../../lib/mapper/error/compliance_error'
+require_relative '../../../../lib/ama-entity-mapper/type'
+require_relative '../../../../lib/ama-entity-mapper/error/validation_error'
+require_relative '../../../../lib/ama-entity-mapper/error/compliance_error'
 
 klass = ::AMA::Entity::Mapper::Type
 validation_error_class = ::AMA::Entity::Mapper::Error::ValidationError

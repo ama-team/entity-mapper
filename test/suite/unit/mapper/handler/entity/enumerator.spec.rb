@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require_relative '../../../../../../lib/mapper/handler/entity/enumerator'
-require_relative '../../../../../../lib/mapper/error/compliance_error'
+require_relative '../../../../../../lib/ama-entity-mapper/handler/entity/enumerator'
+require_relative '../../../../../../lib/ama-entity-mapper/error/compliance_error'
 
 klass = ::AMA::Entity::Mapper::Handler::Entity::Enumerator
 compliance_error_class = ::AMA::Entity::Mapper::Error::ComplianceError

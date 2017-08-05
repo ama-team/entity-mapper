@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require_relative '../../../../../lib/mapper/type/registry'
-require_relative '../../../../../lib/mapper/type'
-require_relative '../../../../../lib/mapper/error/compliance_error'
+require_relative '../../../../../lib/ama-entity-mapper/type/registry'
+require_relative '../../../../../lib/ama-entity-mapper/type'
+require_relative '../../../../../lib/ama-entity-mapper/error/compliance_error'
 
 klass = ::AMA::Entity::Mapper::Type::Registry
 type_klass = ::AMA::Entity::Mapper::Type

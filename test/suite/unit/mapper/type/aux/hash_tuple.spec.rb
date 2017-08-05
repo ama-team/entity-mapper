@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative '../../../../../../lib/mapper/type/aux/hash_tuple'
+require_relative '../../../../../../lib/ama-entity-mapper/type/aux/hash_tuple'
 
 klass = ::AMA::Entity::Mapper::Type::Aux::HashTuple
 

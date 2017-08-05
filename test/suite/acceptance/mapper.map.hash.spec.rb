@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require_relative '../../../lib/mapper'
-require_relative '../../../lib/mapper/dsl'
-require_relative '../../../lib/mapper/type/any'
-require_relative '../../../lib/mapper/context'
-require_relative '../../../lib/mapper/error/mapping_error'
+require_relative '../../../lib/ama-entity-mapper'
+require_relative '../../../lib/ama-entity-mapper/dsl'
+require_relative '../../../lib/ama-entity-mapper/type/any'
+require_relative '../../../lib/ama-entity-mapper/context'
+require_relative '../../../lib/ama-entity-mapper/error/mapping_error'
 
 klass = ::AMA::Entity::Mapper
 
