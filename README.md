@@ -210,20 +210,20 @@ The gem is available as open source under the terms of the
   [doc]: https://ama-team.github.io/ruby-entity-mapper
   [rubygems]: https://rubygems.org
   [allure]: https://github.com/allure-framework/allure2
-  [shields.scrutinizer.master]: https://img.shields.io/scrutinizer/g/ama-team/entity-mapper/master.svg?style=flat-square
-  [shields.scrutinizer.dev]: https://img.shields.io/scrutinizer/g/ama-team/entity-mapper/dev.svg?style=flat-square
-  [shields.coveralls.master]: https://img.shields.io/coveralls/ama-team/entity-mapper/master.svg?style=flat-square
-  [shields.coveralls.dev]: https://img.shields.io/coveralls/ama-team/entity-mapper/dev.svg?style=flat-square
-  [shields.circleci.master]: https://img.shields.io/circleci/project/github/ama-team/entity-mapper/master.svg?style=flat-square
-  [shields.circleci.dev]: https://img.shields.io/circleci/project/github/ama-team/entity-mapper/dev.svg?style=flat-square
-  [shields.codeclimate]: https://img.shields.io/codeclimate/github/ama-team/entity-mapper.svg?style=flat-square
+  [shields.scrutinizer.master]: https://img.shields.io/scrutinizer/g/ama-team/ruby-entity-mapper/master.svg?style=flat-square
+  [shields.scrutinizer.dev]: https://img.shields.io/scrutinizer/g/ama-team/ruby-entity-mapper/dev.svg?style=flat-square
+  [shields.coveralls.master]: https://img.shields.io/coveralls/ama-team/ruby-entity-mapper/master.svg?style=flat-square
+  [shields.coveralls.dev]: https://img.shields.io/coveralls/ama-team/ruby-entity-mapper/dev.svg?style=flat-square
+  [shields.circleci.master]: https://img.shields.io/circleci/project/github/ama-team/ruby-entity-mapper/master.svg?style=flat-square
+  [shields.circleci.dev]: https://img.shields.io/circleci/project/github/ama-team/ruby-entity-mapper/dev.svg?style=flat-square
+  [shields.codeclimate]: https://img.shields.io/codeclimate/github/ama-team/ruby-entity-mapper.svg?style=flat-square
   [shields.gem]: https://img.shields.io/gem/v/ama-entity-mapper.svg?style=flat-square
-  [scrutinizer.master]: https://scrutinizer-ci.com/g/ama-team/entity-mapper?branch=master 
-  [scrutinizer.dev]: https://scrutinizer-ci.com/g/ama-team/entity-mapper?branch=dev
-  [coveralls.master]: https://coveralls.io/github/ama-team/entity-mapper?branch=master
-  [coveralls.dev]: https://coveralls.io/github/ama-team/entity-mapper?branch=dev
-  [circleci.master]: https://circleci.com/gh/ama-team/entity-mapper/tree/master 
-  [circleci.dev]: https://circleci.com/gh/ama-team/entity-mapper/tree/dev
-  [codeclimate]: https://codeclimate.com/github/ama-team/entity-mapper
+  [scrutinizer.master]: https://scrutinizer-ci.com/g/ama-team/ruby-entity-mapper?branch=master 
+  [scrutinizer.dev]: https://scrutinizer-ci.com/g/ama-team/ruby-entity-mapper?branch=dev
+  [coveralls.master]: https://coveralls.io/github/ama-team/ruby-entity-mapper?branch=master
+  [coveralls.dev]: https://coveralls.io/github/ama-team/ruby-entity-mapper?branch=dev
+  [circleci.master]: https://circleci.com/gh/ama-team/ruby-entity-mapper/tree/master 
+  [circleci.dev]: https://circleci.com/gh/ama-team/ruby-entity-mapper/tree/dev
+  [codeclimate]: https://codeclimate.com/github/ama-team/ruby-entity-mapper
   [gem]: https://rubygems.org/gems/ama-entity-mapper
   [semver]: http://semver.org/spec/v2.0.0.html
