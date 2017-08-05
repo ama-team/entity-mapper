@@ -197,7 +197,7 @@ Dev branch state:
 ## Contributing
 
 Bug reports and pull requests are welcome on GitHub at 
-[https://github.com/ama-team/entity-mapper](). Please send your pull
+[https://github.com/ama-team/ruby-entity-mapper](). Please send your pull
 requests into dev branch (not into master).
 
 ## License
@@ -206,8 +206,8 @@ The gem is available as open source under the terms of the
 [MIT License][mit-license].
 
   [mit-license]: http://opensource.org/licenses/MIT
-  [repository]: https://github.com/ama-team/entity-mapper
-  [doc]: https://ama-team.github.io/entity-mapper
+  [repository]: https://github.com/ama-team/ruby-entity-mapper
+  [doc]: https://ama-team.github.io/ruby-entity-mapper
   [rubygems]: https://rubygems.org
   [allure]: https://github.com/allure-framework/allure2
   [shields.scrutinizer.master]: https://img.shields.io/scrutinizer/g/ama-team/entity-mapper/master.svg?style=flat-square

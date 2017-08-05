@@ -86,7 +86,7 @@ module AMA
               def add_allure_helper_method
                 ::AllureRSpec::DSL::Example.instance_eval do
                   define_method :attach_yaml do |data, name = 'data'|
-                    file = Tempfile.new
+                    file = Tempfile.new('ama-entity-mapper-')
                     begin
                       file.write(data.to_yaml)
                       file.close
@@ -119,7 +119,7 @@ module AMA
                 Module.new do
                   def self.included(example_group)
                     example_group.let(:logger_io) do
-                      Tempfile.new
+                      Tempfile.new('ama-entity-mapper-')
                     end
                     example_group.let(:logger) do
                       Logger.new(logger_io)
