@@ -15,7 +15,7 @@ jobs:
   build:
     working_directory: /tmp/workspace
     docker:
-      - image: circleci/ruby:2.4.0
+      - image: circleci/ruby:2.3
     environment:
       JABBA_VERSION: *jabba_version
       JAVA_VERSION: *java_version
