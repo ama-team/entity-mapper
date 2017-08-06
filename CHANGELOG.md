@@ -6,7 +6,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [0.1.0.beta.3]
 ### Added
-- Added `include_sensitive_attributes` context option
+- Added `include_sensitive_attributes` context option. Please note
+it's not in features list yet and may vanish, change and conquer.
 
 ## [0.1.0.beta.2]
 ### Added
