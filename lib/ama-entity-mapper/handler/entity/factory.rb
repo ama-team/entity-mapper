@@ -19,7 +19,7 @@ module AMA
             # @param [Object] _data
             # @param [AMA::Entity::Mapper::Context] context
             def create(type, _data, context)
-              create_internal(type)
+              create_internal(type, context)
             rescue StandardError => e
               message = "Failed to instantiate #{type} directly from class"
               if e.is_a?(ArgumentError)
@@ -31,13 +31,15 @@ module AMA
             private
 
             # @param [AMA::Entity::Mapper::Type] type
-            def create_internal(type)
+            # @param [AMA::Entity::Mapper::Context] context
+            def create_internal(type, context)
               entity = type.type.new
               type.attributes.values.each do |attribute|
                 next if attribute.default.nil? || attribute.virtual
                 segment = Path::Segment.attribute(attribute.name)
+                ctx = context.advance(segment)
                 value = attribute.default
-                type.injector.inject(entity, type, attribute, value, segment)
+                type.injector.inject(entity, type, attribute, value, ctx)
               end
               entity
             end
