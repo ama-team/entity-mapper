@@ -8,7 +8,7 @@ module AMA
         MINOR = 1
         PATCH = 0
         CLASSIFIER = 'beta'.freeze
-        PRERELEASE_NUMBER = 3
+        PRERELEASE_NUMBER = 4
         CHUNKS = [MAJOR, MINOR, PATCH, CLASSIFIER, PRERELEASE_NUMBER].freeze
         VERSION = CHUNKS.reject(&:nil?).join('.').freeze
       end
