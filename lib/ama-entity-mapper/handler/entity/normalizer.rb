@@ -16,10 +16,12 @@ module AMA
 
             # @param [Object] entity
             # @param [AMA::Entity::Mapper::Type] type
-            # @param [AMA::Entity::Mapper::Context] _context
-            def normalize(entity, type, _context = nil)
+            # @param [AMA::Entity::Mapper::Context] context
+            def normalize(entity, type, context)
               type.attributes.values.each_with_object({}) do |attribute, data|
-                next if attribute.virtual || attribute.sensitive
+                next if attribute.virtual
+                condition = context.include_sensitive_attributes
+                next if attribute.sensitive && !condition
                 data[attribute.name] = object_variable(entity, attribute.name)
               end
             end

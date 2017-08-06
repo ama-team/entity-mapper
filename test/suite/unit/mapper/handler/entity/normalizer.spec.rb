@@ -40,7 +40,8 @@ describe klass do
   let(:context) do
     double(
       path: nil,
-      advance: nil
+      advance: nil,
+      include_sensitive_attributes: false
     )
   end
 
@@ -77,6 +78,16 @@ describe klass do
       result = normalizer.normalize(entity, type, context)
       expect(result).to be_a(Hash)
       expect(result).not_to include(:sensitive)
+    end
+
+    it 'doesn\'t skip sensitive attributes if ctx.include_sensitive_attributes is set to true' do
+      allow(context).to receive(:include_sensitive_attributes).and_return(true)
+      value = double
+      entity.instance_variable_set(:@sensitive, value)
+      result = normalizer.normalize(entity, type, context)
+      expect(result).to be_a(Hash)
+      expect(result).to include(:sensitive)
+      expect(result[:sensitive]).to eq(value)
     end
 
     it 'skips virtual attributes' do

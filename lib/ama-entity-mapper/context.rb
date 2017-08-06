@@ -23,6 +23,9 @@ module AMA
         # @!attribute [r] strict
         #   @return [FalseClass, TrueClass]
         attr_reader :strict
+        # @!attribute [r] include_sensitive_attributes
+        #   @return [FalseClass, TrueClass]
+        attr_reader :include_sensitive_attributes
 
         def initialize(**options)
           defaults = respond_to?(:defaults) ? self.defaults : {}
@@ -38,7 +41,9 @@ module AMA
           {
             path: Path.new,
             logger: Logger.new(Aux::NullStream::INSTANCE),
-            strict: true
+            strict: true,
+            # Unstable feature, most likely it's name will change
+            include_sensitive_attributes: false
           }
         end
 
