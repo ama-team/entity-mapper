@@ -9,6 +9,8 @@ require 'rspec/core/rake_task'
 require 'rubocop/rake_task'
 require 'fileutils'
 
+require_relative 'lib/ama-entity-mapper/version'
+
 namespace :test do
   task :clean do
     %w[metadata report].each do |directory|
@@ -86,6 +88,10 @@ end
 
 task :jekyll do
   sh 'bundle exec jekyll serve -s docs/ -d docs/_site/ --baseurl /ruby-entity-mapper'
+end
+
+task :version do
+  puts AMA::Entity::Mapper::Version::VERSION
 end
 
 task :default do
